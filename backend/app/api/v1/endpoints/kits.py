@@ -5,37 +5,28 @@ from typing import List, Literal
 
 from app.database import get_db
 from app.models.kit import Kit
-from app.schemas.kit import KitCreate, KitResponse, KitUpdate
-from app.services.qr_service import generate_qr_code, create_qr_image
+from app.schemas.kit import KitCreate, KitResponse
+from app.services.qr_service import create_qr_image
 
-router = APIRouter(prefix="/kits", tags=["kits"])
+router = APIRouter()
 
 @router.post("/", response_model=KitResponse, status_code=201)
 def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
     """
-    Create a new kit and generate QR code.
+    Create a new kit.
     
     This implements QR-001: Register new kits and generate QR codes.
     """
-    # Generate unique QR code
-    qr_code = generate_qr_code()
-    
-    # Ensure QR code is unique
-    max_attempts = 10
-    for _ in range(max_attempts):
-        existing = db.query(Kit).filter(Kit.qr_code == qr_code).first()
-        if not existing:
-            break
-        qr_code = generate_qr_code()
-    else:
-        raise HTTPException(status_code=500, detail="Failed to generate unique QR code")
+    # Check if code already exists
+    existing = db.query(Kit).filter(Kit.code == kit_data.code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Kit with code '{kit_data.code}' already exists")
     
     # Create kit
     kit = Kit(
-        qr_code=qr_code,
+        code=kit_data.code,
         name=kit_data.name,
-        description=kit_data.description,
-        serial_number=kit_data.serial_number
+        description=kit_data.description
     )
     
     db.add(kit)
@@ -66,53 +57,17 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Kit not found")
     return kit
 
-@router.get("/qr/{qr_code}", response_model=KitResponse)
-def get_kit_by_qr(qr_code: str, db: Session = Depends(get_db)):
+@router.get("/code/{code}", response_model=KitResponse)
+def get_kit_by_code(code: str, db: Session = Depends(get_db)):
     """
-    Get a specific kit by QR code.
+    Get a specific kit by code.
     
     This supports QR-002 and QR-003: Scan QR code to check out/in kits.
     """
-    kit = db.query(Kit).filter(Kit.qr_code == qr_code).first()
+    kit = db.query(Kit).filter(Kit.code == code).first()
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
     return kit
-
-@router.put("/{kit_id}", response_model=KitResponse)
-def update_kit(kit_id: int, kit_data: KitUpdate, db: Session = Depends(get_db)):
-    """
-    Update a kit.
-    """
-    kit = db.query(Kit).filter(Kit.id == kit_id).first()
-    if not kit:
-        raise HTTPException(status_code=404, detail="Kit not found")
-    
-    # Update fields
-    if kit_data.name is not None:
-        kit.name = kit_data.name
-    if kit_data.description is not None:
-        kit.description = kit_data.description
-    if kit_data.serial_number is not None:
-        kit.serial_number = kit_data.serial_number
-    
-    db.commit()
-    db.refresh(kit)
-    
-    return kit
-
-@router.delete("/{kit_id}", status_code=204)
-def delete_kit(kit_id: int, db: Session = Depends(get_db)):
-    """
-    Delete a kit.
-    """
-    kit = db.query(Kit).filter(Kit.id == kit_id).first()
-    if not kit:
-        raise HTTPException(status_code=404, detail="Kit not found")
-    
-    db.delete(kit)
-    db.commit()
-    
-    return None
 
 @router.get("/{kit_id}/qr-image")
 def get_qr_image(
@@ -129,37 +84,12 @@ def get_qr_image(
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
     
-    # Generate QR code image
+    # Generate QR code image from kit code
     image_format = format.upper()
-    image_bytes = create_qr_image(kit.qr_code, image_format)
+    image_bytes = create_qr_image(kit.code, image_format)
     
     # Set appropriate content type
     media_type = "image/svg+xml" if image_format == "SVG" else "image/png"
     
     return Response(content=image_bytes, media_type=media_type)
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app.schemas.kit import KitLookupResponse
-from app.services.kit_service import KitService
 
-router = APIRouter()
-
-@router.get("/lookup", response_model=KitLookupResponse)
-async def lookup_kit(
-    code: str = Query(..., description="Kit code from QR scan or manual entry"),
-    db: Session = Depends(get_db)
-):
-    """
-    Lookup a kit by its code (QR or manual entry)
-    
-    Returns kit details including:
-    - Kit information (code, name, description)
-    - Current status (available, checked_out, in_maintenance, lost)
-    - Current custodian (if checked out)
-    """
-    kit = KitService.lookup_by_code(db, code)
-    
-    if not kit:
-        raise HTTPException(status_code=404, detail=f"Kit with code '{code}' not found")
-    
-    return kit
