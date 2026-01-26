@@ -14,6 +14,7 @@ from app.database import Base
 from app.config import settings
 
 # Import all models here so Alembic can detect them
+from app.models.kit import Kit
 from app.models.user import User
 # from app.models.kit import Kit
 
