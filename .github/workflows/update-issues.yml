@@ -1,0 +1,48 @@
+name: Update GitHub Issues with User Stories
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "update" to confirm issue updates'
+        required: true
+        default: ''
+
+jobs:
+  update-issues:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: copilot/update-github-issues-user-stories
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests
+      
+      - name: Verify confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "update" ]; then
+            echo "Error: Confirmation not provided. Please type 'update' to proceed."
+            exit 1
+          fi
+      
+      - name: Update GitHub Issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python update_issues_api.py
+      
+      - name: Upload summary report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: issue-update-summary
+          path: ISSUE_UPDATE_SUMMARY.md
