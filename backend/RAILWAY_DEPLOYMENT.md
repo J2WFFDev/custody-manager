@@ -5,7 +5,7 @@
 - GitHub repository connected to Railway
 - PostgreSQL database provisioned on Railway
 
-## Initial Setup
+## Quick Start
 
 ### 1. Create Railway Project
 
@@ -20,40 +20,25 @@
 1. In your Railway project, click "+ New"
 2. Select "Database" → "PostgreSQL"
 3. Railway will automatically provision a PostgreSQL instance
-4. Copy the `DATABASE_URL` connection string
+4. The `DATABASE_URL` environment variable is automatically set
 
 ### 3. Configure Environment Variables
 
-In Railway project settings, add these environment variables:
+In Railway project settings → Variables, add:
 
 #### Required Variables:
 ```bash
-# Database (automatically set by Railway PostgreSQL plugin)
-DATABASE_URL=postgresql://user:pass@host:port/db
-
-# Security
-SECRET_KEY=your-secret-key-here-min-32-chars
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-
 # Application
 DEBUG=False
 ENVIRONMENT=production
-FRONTEND_URL=https://your-frontend.vercel.app
+APP_NAME=WilcoSS Custody Manager API
 
-# CORS Origins (comma-separated)
-BACKEND_CORS_ORIGINS=["https://your-frontend.vercel.app"]
+# Frontend (update with your Vercel URL)
+FRONTEND_URL=https://custody-manager.vercel.app
+BACKEND_CORS_ORIGINS=["https://custody-manager.vercel.app","https://*.vercel.app"]
 
-# OAuth - Google
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_REDIRECT_URI=https://your-backend.railway.app/api/v1/auth/google/callback
-
-# OAuth - Microsoft
-MICROSOFT_CLIENT_ID=your-microsoft-client-id
-MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
-MICROSOFT_TENANT_ID=common
-MICROSOFT_REDIRECT_URI=https://your-backend.railway.app/api/v1/auth/microsoft/callback
+# Security (generate with: python -c "import secrets; print(secrets.token_urlsafe(32))")
+SECRET_KEY=
 ```
 
 ### 4. Configure Build Settings
