@@ -83,6 +83,35 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
+## Database Setup
+
+### Create Database
+```bash
+createdb custody_manager
+```
+
+### Run Migrations
+```bash
+cd backend
+alembic upgrade head
+```
+
+### Create First Admin User
+```sql
+INSERT INTO users (email, name, oauth_provider, oauth_id, role, verified_adult)
+VALUES ('admin@example.com', 'Admin User', 'google', 'oauth-id-here', 'admin', true);
+```
+
+## Database Schema
+
+See [SCHEMA.md](SCHEMA.md) for complete database documentation.
+
+### Tables
+- **users** - User accounts with OAuth and roles
+- **kits** - Equipment registry
+- **custody_events** - Append-only custody log
+- **maintenance_events** - Append-only maintenance log
+
 ## Testing
 
 ```bash
