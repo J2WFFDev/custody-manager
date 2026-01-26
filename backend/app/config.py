@@ -5,9 +5,9 @@ import secrets
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "WilcoSS Custody Manager API"
-    DEBUG: bool = False  # Default to production mode
+    DEBUG: bool = True  # Default to development mode, set to False in production
     API_V1_PREFIX: str = "/api/v1"
-    ENVIRONMENT: str = "production"  # development, staging, production
+    ENVIRONMENT: str = "development"  # development, staging, production
     
     # Database
     DATABASE_URL: str = "postgresql://localhost/custody_manager"
