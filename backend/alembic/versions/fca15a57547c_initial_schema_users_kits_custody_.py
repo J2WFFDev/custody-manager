@@ -31,8 +31,8 @@ def upgrade() -> None:
         sa.Column('role', sa.String(length=50), nullable=False),
         sa.Column('verified_adult', sa.Boolean(), nullable=True),
         sa.Column('is_active', sa.Boolean(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('oauth_provider', 'oauth_id', name='unique_oauth')
     )
@@ -51,8 +51,8 @@ def upgrade() -> None:
         sa.Column('status', sa.String(length=50), nullable=False),
         sa.Column('location', sa.String(length=255), nullable=True),
         sa.Column('current_custodian_id', sa.Integer(), nullable=True),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['current_custodian_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
