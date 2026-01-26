@@ -1,14 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from enum import Enum
-
-class KitStatus(str, Enum):
-    """Kit status enum for API responses"""
-    AVAILABLE = "available"
-    CHECKED_OUT = "checked_out"
-    IN_MAINTENANCE = "in_maintenance"
-    LOST = "lost"
+from app.models.kit import KitStatus
 
 class KitBase(BaseModel):
     """Base kit schema"""

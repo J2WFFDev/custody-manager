@@ -26,7 +26,8 @@ def upgrade() -> None:
         sa.Column('code', sa.String(length=50), nullable=False),
         sa.Column('name', sa.String(length=200), nullable=False),
         sa.Column('description', sa.String(length=500), nullable=True),
-        sa.Column('status', sa.Enum('AVAILABLE', 'CHECKED_OUT', 'IN_MAINTENANCE', 'LOST', name='kitstatus'), nullable=False),
+        # Enum values match KitStatus in app.models.kit
+        sa.Column('status', sa.Enum('available', 'checked_out', 'in_maintenance', 'lost', name='kitstatus'), nullable=False),
         sa.Column('current_custodian_id', sa.Integer(), nullable=True),
         sa.Column('current_custodian_name', sa.String(length=200), nullable=True),
         sa.PrimaryKeyConstraint('id')

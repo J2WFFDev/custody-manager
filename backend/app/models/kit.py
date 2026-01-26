@@ -3,7 +3,7 @@ from app.models.base import BaseModel
 import enum
 
 class KitStatus(str, enum.Enum):
-    """Kit status enum"""
+    """Kit status enum - shared between models and schemas"""
     AVAILABLE = "available"
     CHECKED_OUT = "checked_out"
     IN_MAINTENANCE = "in_maintenance"
