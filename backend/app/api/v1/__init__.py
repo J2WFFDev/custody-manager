@@ -3,6 +3,8 @@ from app.api.v1.endpoints import kits
 
 api_router = APIRouter()
 
+# Include routers
+api_router.include_router(kits.router)
 # Include endpoint routers
 api_router.include_router(kits.router, prefix="/kits", tags=["kits"])
 from app.api.v1.endpoints import auth
