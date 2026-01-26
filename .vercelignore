@@ -34,7 +34,6 @@ Thumbs.db
 
 # Documentation and scripts
 *.md
-!frontend/README.md
 issues
 generate_all_issues.py
 github_issues_data.json
