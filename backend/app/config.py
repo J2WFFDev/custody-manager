@@ -1,26 +1,42 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import List
 import secrets
-import os
 
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "WilcoSS Custody Manager API"
-    DEBUG: bool = True
+    DEBUG: bool = True  # Default to development mode, set to False in production
     API_V1_PREFIX: str = "/api/v1"
+    ENVIRONMENT: str = "development"  # development, staging, production
     
-    # Database - Set via DATABASE_URL environment variable
-    # Default is for local development only
+    # Database
     DATABASE_URL: str = "postgresql://localhost/custody_manager"
     
-    # Security - Auto-generates secure key if not set
-    # IMPORTANT: Set SECRET_KEY environment variable in production
-    SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
+    # Security
+    SECRET_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not provided
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
-    # CORS
-    BACKEND_CORS_ORIGINS: list = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS - Allow production frontend
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://custody-manager.vercel.app",  # Add your Vercel domain
+    ]
+    
+    # OAuth - Google
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:5173/auth/google/callback"
+    
+    # OAuth - Microsoft
+    MICROSOFT_CLIENT_ID: str = ""
+    MICROSOFT_CLIENT_SECRET: str = ""
+    MICROSOFT_TENANT_ID: str = "common"
+    MICROSOFT_REDIRECT_URI: str = "http://localhost:5173/auth/microsoft/callback"
+    
+    # Frontend URL
+    FRONTEND_URL: str = "http://localhost:5173"
     
     class Config:
         env_file = ".env"
