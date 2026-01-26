@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.api.v1 import api_router
 
@@ -9,6 +10,9 @@ app = FastAPI(
     docs_url=f"{settings.API_V1_PREFIX}/docs",
     redoc_url=f"{settings.API_V1_PREFIX}/redoc",
 )
+
+# Session middleware (required for OAuth)
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # CORS middleware
 app.add_middleware(

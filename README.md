@@ -65,6 +65,7 @@ This system provides:
 - **[User Stories](USER_STORIES.md)** - Feature requirements by user role
 - **[Architecture Guide](ARCHITECTURE.md)** - Technical design and decisions
 - **[Contributing Guide](CONTRIBUTING.md)** - How to contribute to this project
+- **[Deployment Guide](DEPLOYMENT.md)** - Vercel and Railway deployment instructions
 
 ## 🚀 Getting Started
 
@@ -150,6 +151,22 @@ custody-manager/
 ├── ARCHITECTURE.md     # Technical architecture
 └── README.md           # This file
 ```
+
+## 🚀 Deployment
+
+The application is deployed using:
+- **Frontend**: [Vercel](https://vercel.com) - Automatic deployments from `main` branch
+- **Backend**: [Railway](https://railway.app) - Automatic deployments with PostgreSQL
+
+**Production URLs:**
+- Frontend: `https://[your-project].vercel.app`
+- Backend API: `https://[your-backend].railway.app`
+
+**Preview Deployments:**
+- Every pull request automatically gets a preview deployment on Vercel
+- Preview URL is posted as a comment on the PR
+
+For detailed deployment instructions, see **[DEPLOYMENT.md](DEPLOYMENT.md)**.
 
 ## 📊 Issue Tracking
 
