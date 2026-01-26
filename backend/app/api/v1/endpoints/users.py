@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 from app.core.security import verify_token
+from app.constants import VALID_ROLES
 
 router = APIRouter()
 
@@ -62,9 +63,8 @@ async def update_user(
     # Update fields if provided
     if user_update.role is not None:
         # Validate role
-        valid_roles = ["admin", "armorer", "coach", "volunteer", "parent"]
-        if user_update.role not in valid_roles:
-            raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(valid_roles)}")
+        if user_update.role not in VALID_ROLES:
+            raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {', '.join(VALID_ROLES)}")
         user.role = user_update.role
     
     if user_update.verified_adult is not None:
