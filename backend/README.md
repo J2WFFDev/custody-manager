@@ -8,6 +8,7 @@ FastAPI backend for the WilcoSS Custody & Equipment Manager.
 - **PostgreSQL** - Primary database
 - **Alembic** - Database migrations
 - **Pydantic** - Data validation
+- **Authlib** - OAuth 2.0 authentication
 
 ## Prerequisites
 - Python 3.11+
@@ -53,6 +54,26 @@ FastAPI backend for the WilcoSS Custody & Equipment Manager.
    - Swagger UI: http://localhost:8000/api/v1/docs
    - ReDoc: http://localhost:8000/api/v1/redoc
 
+## OAuth Authentication
+
+The application supports OAuth 2.0 authentication with Google and Microsoft providers. See [OAuth Setup Guide](docs/OAUTH_SETUP.md) for detailed configuration instructions.
+
+### Quick OAuth Setup
+
+1. Configure OAuth credentials in `.env`:
+   ```
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   
+   MICROSOFT_CLIENT_ID=your-microsoft-client-id
+   MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
+   ```
+
+2. Authentication endpoints:
+   - Google login: `GET /api/v1/auth/google/login`
+   - Microsoft login: `GET /api/v1/auth/microsoft/login`
+   - Get current user: `GET /api/v1/auth/me` (requires Bearer token)
+
 ## Project Structure
 ```
 backend/
@@ -67,6 +88,7 @@ backend/
 │   └── core/            # Core utilities
 ├── alembic/             # Database migrations
 ├── tests/               # Test files
+├── docs/                # Documentation
 └── requirements.txt     # Dependencies
 ```
 
