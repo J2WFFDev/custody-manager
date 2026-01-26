@@ -1,3 +1,4 @@
-// API client services will be added here
-// Example: authentication, kit management, audit log fetching
-export {}
+// API client services
+export { api, API_URL } from './api';
+export { kitService } from './kitService';
+
