@@ -1,69 +1,48 @@
-# Technical Architecture Documentation
+# Technical Architecture Documentation for WilcoSS Custody Manager
 
-## System Architecture Overview
-This section describes the high-level structure of the system, emphasizing how the various components interact with each other.
+## Overview
+The WilcoSS Custody Manager project is designed to facilitate efficient management of custody processes. The following technologies have been employed in its development:
 
-## Frontend Technology Choices and Structure
-- **Framework**: React.js
-- **State Management**: Redux
-- **Styling**: CSS Modules
-- **Key Libraries**: Axios for API calls
+- **FastAPI**: A modern web framework for building APIs with Python 3.6+ based on standard Python type hints. It is fast (high performance) and allows for easy implementation of RESTful APIs.
+- **PostgreSQL**: A powerful, open-source object-relational database system that benefits from a rich set of features, making it an excellent choice for data management in web applications.
+- **React**: A JavaScript library for building user interfaces, allowing for the creation of dynamic and responsive front-end applications.
+- **Vite**: A build tool and development server that allows for fast development and hot module replacement, speeding up development workflows.
+- **TailwindCSS**: A utility-first CSS framework for creating custom designs without having to leave your HTML.
+- **Railway**: A platform that simplifies deployment and allows easy management of cloud infrastructure.
+- **Vercel**: A platform for frontend frameworks and static sites, providing a seamless deployment experience.
 
-### Frontend Structure
+## Architecture Diagram
 ```
-/src
- ├─ /components
- ├─ /redux
- ├─ /styles
- ├─ App.js
- └─ index.js
+                      +-------------------+
+                      |  Vercel           |
+                      |  (Hosting Frontend)|
+                      +-------------------+
+                               |
+                               |
+                      +-------------------+
+                      |  React            |
+                      |  (Frontend)       |
+                      +-------------------+
+                               |
+                               |
+                      +-------------------+
+                      |  FastAPI          |
+                      |  (Backend API)    |
+                      +-------------------+
+                               |
+                               |
+                      +-------------------+
+                      |  PostgreSQL       |
+                      |  (Database)       |
+                      +-------------------+
+
 ```
 
-## Backend Technology Choices and Structure
-- **Framework**: Express.js
-- **Database**: MongoDB
-- **Authentication**: JWT (JSON Web Tokens)
+## Deployment Process
+1. **Development**: Use Vite for a smooth development experience with React.
+2. **Testing**: Ensure all features are tested using appropriate testing frameworks.
+3. **Deployment**: Deploy the FastAPI backend to Railway and the React frontend to Vercel.
+4. **Monitoring**: Regularly monitor and update the system for security and performance enhancements.
 
-### Backend Structure
-```
-/src
- ├─ /controllers
- ├─ /models
- ├─ /routes
- ├─ /middlewares
- └─ server.js
-```
-
-## Database Design
-The database is designed to cater to the application's requirements with a focus on performance and scalability.
-
-### Example Database Schema
-- **Users** Table
-   - `id`: ObjectId
-   - `username`: String
-   - `password`: String
-   - `role`: String
-
-## Security Architecture
-Security is a primary concern and is implemented through several layers:
-- **Role-Based Access Control (RBAC)**: Users have different roles (Admin, User, etc.) which determine input/output permissions.
-- **Data Validation**: Input data is validated before processing to prevent malicious content.
-- **Encryption**: Sensitive data is encrypted before storage.
-
-## Deployment Strategy
-The application will be deployed using cloud services, focusing on high availability and scalability. The chosen platform is AWS. Using Docker to containerize the application supports easy deployment.
-
-## Data Flow Examples
-- **User Registration Flow**
-   1. User fills registration form on frontend.
-   2. Frontend sends POST request to backend API.
-   3. Backend validates and stores user data.
-   4. Response sent back to frontend with user details.
-
-- **Data Retrieval Flow**
-   1. User requests data.
-   2. Frontend sends request to backend.
-   3. Backend retrieves data from the database.
-   4. Data sent back to frontend for rendering.
-
----
+## Conclusion
+The combination of these technologies creates a powerful architecture for the WilcoSS Custody Manager, ensuring scalability and efficiency in managing custody processes.
