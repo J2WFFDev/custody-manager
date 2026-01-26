@@ -1,16 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
-from app.core.security import verify_token, get_current_user_from_token
+from app.core.security import verify_token
 
 router = APIRouter()
 
-def get_current_user(db: Session, token: str) -> User:
-    """Get current user from JWT token"""
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+    """Get current user from JWT token in Authorization header"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    token = auth_header.replace("Bearer ", "")
     payload = verify_token(token)
+    
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
     
@@ -30,14 +36,9 @@ def verify_admin(user: User):
 @router.get("/", response_model=List[UserResponse])
 async def list_users(
     db: Session = Depends(get_db),
-    authorization: str = Depends(lambda request: request.headers.get("Authorization", ""))
+    current_user: User = Depends(get_current_user)
 ):
     """List all users (Admin only)"""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = authorization.replace("Bearer ", "")
-    current_user = get_current_user(db, token)
     verify_admin(current_user)
     
     users = db.query(User).all()
@@ -48,14 +49,9 @@ async def update_user(
     user_id: int,
     user_update: UserUpdate,
     db: Session = Depends(get_db),
-    authorization: str = Depends(lambda request: request.headers.get("Authorization", ""))
+    current_user: User = Depends(get_current_user)
 ):
     """Update user role and verified adult status (Admin only)"""
-    if not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    token = authorization.replace("Bearer ", "")
-    current_user = get_current_user(db, token)
     verify_admin(current_user)
     
     # Find the user to update

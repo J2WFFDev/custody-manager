@@ -49,7 +49,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {isLoggedIn && (
                 <UserProfile 
                   name={currentUser.name}
-                  email={currentUser.email}
                   role={currentUser.role}
                   verifiedAdult={currentUser.verifiedAdult}
                 />

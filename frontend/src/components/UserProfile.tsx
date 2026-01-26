@@ -2,7 +2,6 @@ import React from 'react';
 
 interface UserProfileProps {
   name: string;
-  email: string;
   role: string;
   verifiedAdult: boolean;
 }
