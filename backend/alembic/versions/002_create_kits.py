@@ -1,7 +1,7 @@
 """Create kits table
 
-Revision ID: 001_create_kits
-Revises: 
+Revision ID: 002_create_kits
+Revises: 001_add_user_model
 Create Date: 2026-01-26 23:19:00.000000
 
 """

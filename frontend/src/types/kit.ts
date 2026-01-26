@@ -31,5 +31,4 @@ export interface KitFormData {
   name: string;
   description: string;
   code: string;
-  storage_location?: string;
 }
