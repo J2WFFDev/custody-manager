@@ -4,7 +4,7 @@
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing
-3. Enable Google+ API
+3. Enable **Google Identity** or **People API** (Note: Google+ API has been deprecated)
 4. Go to Credentials → Create Credentials → OAuth 2.0 Client ID
 5. Application type: Web application
 6. Authorized redirect URIs: `http://localhost:8000/api/v1/auth/google/callback`
@@ -39,7 +39,7 @@ MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret-here
 2. Navigate to: `http://localhost:8000/api/v1/auth/google/login`
 3. Or: `http://localhost:8000/api/v1/auth/microsoft/login`
 4. Complete OAuth flow
-5. You'll be redirected to frontend with JWT token
+5. You'll be redirected to frontend with JWT token in URL fragment
 
 ## API Endpoints
 
@@ -48,3 +48,9 @@ MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret-here
 - `GET /api/v1/auth/microsoft/login` - Initiate Microsoft OAuth
 - `GET /api/v1/auth/microsoft/callback` - Microsoft OAuth callback
 - `GET /api/v1/auth/me` - Get current authenticated user (requires Bearer token)
+
+## Security Notes
+
+- JWT tokens are passed via URL fragments (#token=...) rather than query parameters for better security
+- Tokens are not logged in server logs or browser history when using fragments
+- Frontend must extract token from URL fragment (window.location.hash)

@@ -8,8 +8,10 @@ from app.core.security import create_access_token, verify_token
 from app.schemas.user import UserResponse
 from app.config import settings
 from app.models.user import User
+import logging
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 # Google OAuth
 @router.get("/google/login")
@@ -38,12 +40,15 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
         # Create JWT token
         access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
         
-        # Redirect to frontend with token
+        # Redirect to frontend with token in URL fragment (more secure than query param)
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/auth/callback?token={access_token}"
+            url=f"{settings.FRONTEND_URL}/auth/callback#token={access_token}"
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Authentication failed: {str(e)}")
+        logger.error(f"Google authentication failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Authentication failed")
 
 # Microsoft OAuth
 @router.get("/microsoft/login")
@@ -72,12 +77,15 @@ async def microsoft_callback(request: Request, db: Session = Depends(get_db)):
         # Create JWT token
         access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
         
-        # Redirect to frontend with token
+        # Redirect to frontend with token in URL fragment (more secure than query param)
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/auth/callback?token={access_token}"
+            url=f"{settings.FRONTEND_URL}/auth/callback#token={access_token}"
         )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Authentication failed: {str(e)}")
+        logger.error(f"Microsoft authentication failed: {str(e)}")
+        raise HTTPException(status_code=400, detail="Authentication failed")
 
 # Get current user from JWT
 @router.get("/me", response_model=UserResponse)

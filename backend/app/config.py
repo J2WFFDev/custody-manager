@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     # OAuth - Microsoft
     MICROSOFT_CLIENT_ID: str = ""
     MICROSOFT_CLIENT_SECRET: str = ""
-    MICROSOFT_TENANT_ID: str = "common"
+    MICROSOFT_TENANT_ID: str = "common"  # 'common', 'organizations', 'consumers', or tenant GUID
     MICROSOFT_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/microsoft/callback"
     
     # Frontend URL for redirect after auth
@@ -39,5 +39,10 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+    
+    def get_microsoft_metadata_url(self) -> str:
+        """Get Microsoft OAuth metadata URL with validated tenant ID."""
+        tenant_id = self.MICROSOFT_TENANT_ID or "common"
+        return f'https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration'
 
 settings = Settings()
