@@ -1,5 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import secrets
+import os
 
 class Settings(BaseSettings):
     # Application
@@ -7,11 +9,13 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     API_V1_PREFIX: str = "/api/v1"
     
-    # Database
-    DATABASE_URL: str = "postgresql://user:password@localhost/custody_manager"
+    # Database - Set via DATABASE_URL environment variable
+    # Default is for local development only
+    DATABASE_URL: str = "postgresql://localhost/custody_manager"
     
-    # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # Security - Auto-generates secure key if not set
+    # IMPORTANT: Set SECRET_KEY environment variable in production
+    SECRET_KEY: str = os.getenv("SECRET_KEY", secrets.token_urlsafe(32))
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
