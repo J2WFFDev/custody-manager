@@ -9,3 +9,5 @@ python-dotenv==1.0.1
 python-jose[cryptography]==3.4.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.18
+qrcode[pil]==8.0
+Pillow==11.0.0
