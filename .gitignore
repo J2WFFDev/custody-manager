@@ -9,6 +9,20 @@ dist/
 build/
 
 # IDE
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# Backend (for future)
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/venv/
+backend/.venv/
+
+# IDEs
 .vscode/
 .idea/
 *.swp
