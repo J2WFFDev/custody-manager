@@ -1,13 +1,14 @@
 from pydantic_settings import BaseSettings
 from typing import List
 import secrets
+import os
 
 class Settings(BaseSettings):
     # Application
     APP_NAME: str = "WilcoSS Custody Manager API"
-    DEBUG: bool = True  # Default to development mode, set to False in production
+    DEBUG: bool = False  # Default to production mode
     API_V1_PREFIX: str = "/api/v1"
-    ENVIRONMENT: str = "development"  # development, staging, production
+    ENVIRONMENT: str = os.getenv("RAILWAY_ENVIRONMENT", "development")
     
     # Database
     DATABASE_URL: str = "postgresql://localhost/custody_manager"
@@ -21,7 +22,8 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://custody-manager.vercel.app",  # Add your Vercel domain
+        "https://custody-manager.vercel.app",
+        "https://*.vercel.app",  # Allow Vercel preview deployments
     ]
     
     # OAuth - Google
@@ -36,20 +38,6 @@ class Settings(BaseSettings):
     MICROSOFT_REDIRECT_URI: str = "http://localhost:5173/auth/microsoft/callback"
     
     # Frontend URL
-    FRONTEND_URL: str = "http://localhost:5173"
-    
-    # OAuth - Google
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
-    
-    # OAuth - Microsoft
-    MICROSOFT_CLIENT_ID: str = ""
-    MICROSOFT_CLIENT_SECRET: str = ""
-    MICROSOFT_TENANT_ID: str = "common"  # 'common', 'organizations', 'consumers', or tenant GUID
-    MICROSOFT_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/microsoft/callback"
-    
-    # Frontend URL for redirect after auth
     FRONTEND_URL: str = "http://localhost:5173"
     
     class Config:
