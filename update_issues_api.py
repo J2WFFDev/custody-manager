@@ -31,6 +31,9 @@ REPO_NAME = "custody-manager"
 ISSUES_DIR = "issues"
 GITHUB_API_URL = "https://api.github.com"
 
+# Issue #7 was already manually updated and should be skipped
+SKIPPED_ISSUES = [7]
+
 
 def get_github_token(args_token: str = None) -> str:
     """Get GitHub token from arguments or environment."""
@@ -61,7 +64,7 @@ def update_github_issue(issue_number: int, body: str, token: str) -> Tuple[bool,
     """
     url = f"{GITHUB_API_URL}/repos/{REPO_OWNER}/{REPO_NAME}/issues/{issue_number}"
     headers = {
-        'Authorization': f'token {token}',
+        'Authorization': f'Bearer {token}',
         'Accept': 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
     }
@@ -144,6 +147,7 @@ All issues were updated with "Related User Stories" sections based on the markdo
 - **Repository:** {REPO_OWNER}/{REPO_NAME}
 - **Source Directory:** {ISSUES_DIR}/
 - **Update Method:** GitHub REST API
+- **Skipped Issues:** {', '.join(f'#{i}' for i in SKIPPED_ISSUES)} (already contain user stories)
 
 ## Files Updated
 
@@ -154,10 +158,13 @@ The following issue descriptions were updated:
     for result in successful:
         content += f"- `issues/{result['issue_number']}.md` → Issue #{result['issue_number']}\n"
     
-    content += """
+    skipped_notes = '\n'.join([f"- Issue #{i} was intentionally skipped as it already contains user stories" 
+                                for i in SKIPPED_ISSUES])
+    
+    content += f"""
 ## Notes
 
-- Issue #7 was intentionally skipped as it was already updated manually
+{skipped_notes}
 - Only issue bodies/descriptions were modified
 - All other metadata (title, labels, assignees, etc.) remain unchanged
 - All existing issue content was preserved with user stories added

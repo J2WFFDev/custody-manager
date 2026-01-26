@@ -34,10 +34,23 @@ def get_current_issue_body(issue_number: int) -> Optional[str]:
         response = requests.get(url)
         if response.status_code == 200:
             return response.json().get('body', '')
-        else:
+        elif response.status_code == 404:
+            print(f"Error: Issue #{issue_number} not found")
             return None
+        elif response.status_code == 403:
+            print(f"Error: Access forbidden (rate limit or permissions)")
+            return None
+        elif response.status_code == 401:
+            print(f"Error: Authentication required")
+            return None
+        else:
+            print(f"Error: HTTP {response.status_code}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Network error fetching issue #{issue_number}: {str(e)}")
+        return None
     except Exception as e:
-        print(f"Error fetching issue #{issue_number}: {str(e)}")
+        print(f"Unexpected error fetching issue #{issue_number}: {str(e)}")
         return None
 
 
