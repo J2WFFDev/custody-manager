@@ -3,7 +3,7 @@ from app.services.qr_service import generate_qr_code, create_qr_image
 
 def test_generate_qr_code():
     """Test QR code generation"""
-    qr_code = generate_qr_code("")
+    qr_code = generate_qr_code()
     
     # Should be in format XXX-XXXX-XXXX
     assert isinstance(qr_code, str)
@@ -25,7 +25,7 @@ def test_qr_codes_are_unique():
     """Test that generated QR codes are unique"""
     codes = set()
     for _ in range(100):
-        code = generate_qr_code("")
+        code = generate_qr_code()
         codes.add(code)
     
     # All codes should be unique

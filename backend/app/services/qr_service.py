@@ -4,7 +4,7 @@ import io
 import secrets
 from typing import Literal
 
-def generate_qr_code(qr_code: str) -> str:
+def generate_qr_code() -> str:
     """
     Generate unique alphanumeric code for kits.
     
@@ -13,9 +13,12 @@ def generate_qr_code(qr_code: str) -> str:
     """
     # Generate a 12-character alphanumeric code
     # Format: XXX-XXXX-XXXX for readability
-    part1 = secrets.token_hex(2).upper()[:3]
-    part2 = secrets.token_hex(2).upper()[:4]
-    part3 = secrets.token_hex(2).upper()[:4]
+    # Using secrets.token_urlsafe for true alphanumeric randomness
+    import string
+    alphabet = string.ascii_uppercase + string.digits
+    part1 = ''.join(secrets.choice(alphabet) for _ in range(3))
+    part2 = ''.join(secrets.choice(alphabet) for _ in range(4))
+    part3 = ''.join(secrets.choice(alphabet) for _ in range(4))
     return f"{part1}-{part2}-{part3}"
 
 def create_qr_image(data: str, image_format: Literal["PNG", "SVG"] = "PNG") -> bytes:

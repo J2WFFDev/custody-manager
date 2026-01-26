@@ -18,7 +18,7 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
     This implements QR-001: Register new kits and generate QR codes.
     """
     # Generate unique QR code
-    qr_code = generate_qr_code("")
+    qr_code = generate_qr_code()
     
     # Ensure QR code is unique
     max_attempts = 10
@@ -26,7 +26,7 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
         existing = db.query(Kit).filter(Kit.qr_code == qr_code).first()
         if not existing:
             break
-        qr_code = generate_qr_code("")
+        qr_code = generate_qr_code()
     else:
         raise HTTPException(status_code=500, detail="Failed to generate unique QR code")
     
