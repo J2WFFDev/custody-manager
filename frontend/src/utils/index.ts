@@ -2,6 +2,11 @@
 // Example: date formatting, validation, constants
 
 /**
+ * Valid user roles - must match backend VALID_ROLES constant
+ */
+export const VALID_ROLES = ['admin', 'armorer', 'coach', 'volunteer', 'parent'] as const;
+
+/**
  * Role color mappings for consistent badge styling
  */
 const ROLE_COLORS: { [key: string]: string } = {

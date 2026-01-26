@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRoleBadgeColor } from '../utils';
+import { getRoleBadgeColor, VALID_ROLES } from '../utils';
 
 interface User {
   id: number;
@@ -197,11 +197,11 @@ const Users: React.FC = () => {
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
                       className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      <option value="admin">Admin</option>
-                      <option value="armorer">Armorer</option>
-                      <option value="coach">Coach</option>
-                      <option value="volunteer">Volunteer</option>
-                      <option value="parent">Parent</option>
+                      {VALID_ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </option>
+                      ))}
                     </select>
                     <span className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
                       {user.role}
