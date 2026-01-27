@@ -1,4 +1,7 @@
 from fastapi import APIRouter
+
+# Include endpoint routers
+api_router.include_router(kits.router, prefix="/kits", tags=["kits"])
 from app.api.v1.endpoints import auth, kits, users
 
 api_router = APIRouter()
@@ -15,3 +18,4 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 @api_router.get("/")
 async def api_root():
     return {"message": "API v1"}
+
