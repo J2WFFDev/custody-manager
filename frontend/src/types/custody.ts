@@ -51,6 +51,9 @@ export interface OffSiteCheckoutRequest {
   custodian_name: string;
   custodian_id?: number;
   notes?: string;
+  // Attestation fields (CUSTODY-012)
+  attestation_signature: string;
+  attestation_accepted: boolean;
 }
 
 export interface ApprovalRequest {
@@ -70,6 +73,11 @@ export interface ApprovalRequest {
   denial_reason?: string;
   created_at: string;
   updated_at: string;
+  // Attestation fields (CUSTODY-012)
+  attestation_text?: string;
+  attestation_signature?: string;
+  attestation_timestamp?: string;
+  attestation_ip_address?: string;
 }
 
 export interface OffSiteCheckoutResponse {
@@ -87,4 +95,9 @@ export interface ApprovalDecisionResponse {
   message: string;
   approval_request: ApprovalRequest;
   custody_event?: CustodyEvent;
+}
+
+// Attestation response (CUSTODY-012)
+export interface AttestationTextResponse {
+  attestation_text: string;
 }

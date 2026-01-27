@@ -9,6 +9,9 @@ class OffSiteCheckoutRequest(BaseModel):
     custodian_name: str = Field(..., description="Name of person receiving custody (e.g., athlete/child)")
     custodian_id: Optional[int] = Field(None, description="User ID if custodian is in system")
     notes: Optional[str] = Field(None, description="Optional notes about the request")
+    # Attestation fields (CUSTODY-012)
+    attestation_signature: str = Field(..., description="Digital signature/acknowledgment (user's name)")
+    attestation_accepted: bool = Field(..., description="Confirmation that user has read and accepted attestation")
 
 class ApprovalDecisionRequest(BaseModel):
     """Request schema for approving/denying an off-site checkout request"""
@@ -34,6 +37,11 @@ class ApprovalRequestResponse(BaseModel):
     denial_reason: Optional[str]
     created_at: datetime
     updated_at: datetime
+    # Attestation fields (CUSTODY-012)
+    attestation_text: Optional[str]
+    attestation_signature: Optional[str]
+    attestation_timestamp: Optional[datetime]
+    attestation_ip_address: Optional[str]
     
     class Config:
         from_attributes = True

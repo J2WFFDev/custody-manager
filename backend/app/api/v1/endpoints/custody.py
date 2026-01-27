@@ -23,6 +23,7 @@ from app.services.approval_service import (
     approve_or_deny_offsite_request,
     get_pending_approvals
 )
+from app.constants import ATTESTATION_TEXT
 
 router = APIRouter()
 
@@ -102,26 +103,32 @@ def request_offsite_checkout(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Request off-site checkout approval for a kit.
+    Request off-site checkout approval for a kit with responsibility attestation.
     
     Implements:
     - CUSTODY-011: As a Parent, I want to check out a kit for my child to take off-site
+    - CUSTODY-012: As a Parent, I want to acknowledge responsibility via a clear attestation statement
     - AUTH-002: Verify user has verified_adult flag
     
     This endpoint:
     - Verifies the user is a verified adult
+    - Validates attestation signature and acceptance
     - Checks that the kit is available
     - Creates an approval request that requires Armorer or Coach approval
+    - Stores attestation for audit trail
     - Does NOT immediately check out the kit
     """
-    # Create approval request
+    # Create approval request with attestation
     approval_request, kit = create_offsite_checkout_request(
         db=db,
         kit_code=request.kit_code,
         custodian_name=request.custodian_name,
         requester_user=current_user,
+        attestation_signature=request.attestation_signature,
+        attestation_accepted=request.attestation_accepted,
         custodian_id=request.custodian_id,
-        notes=request.notes
+        notes=request.notes,
+        request_ip=None  # TODO: Extract from request headers in production
     )
     
     # Build response
@@ -141,7 +148,11 @@ def request_offsite_checkout(
         notes=approval_request.notes,
         denial_reason=approval_request.denial_reason,
         created_at=approval_request.created_at,
-        updated_at=approval_request.updated_at
+        updated_at=approval_request.updated_at,
+        attestation_text=approval_request.attestation_text,
+        attestation_signature=approval_request.attestation_signature,
+        attestation_timestamp=approval_request.attestation_timestamp,
+        attestation_ip_address=approval_request.attestation_ip_address
     )
     
     return OffSiteCheckoutResponse(
@@ -195,7 +206,11 @@ def approve_offsite_checkout(
         notes=approval_request.notes,
         denial_reason=approval_request.denial_reason,
         created_at=approval_request.created_at,
-        updated_at=approval_request.updated_at
+        updated_at=approval_request.updated_at,
+        attestation_text=approval_request.attestation_text,
+        attestation_signature=approval_request.attestation_signature,
+        attestation_timestamp=approval_request.attestation_timestamp,
+        attestation_ip_address=approval_request.attestation_ip_address
     )
     
     custody_event_dict = None
@@ -239,7 +254,7 @@ def list_pending_approvals(
     
     This endpoint:
     - Verifies the user is an Armorer or Coach
-    - Returns all pending approval requests
+    - Returns all pending approval requests with attestation data
     """
     # Get pending approvals
     pending_requests = get_pending_approvals(
@@ -269,7 +284,28 @@ def list_pending_approvals(
             notes=approval_request.notes,
             denial_reason=approval_request.denial_reason,
             created_at=approval_request.created_at,
-            updated_at=approval_request.updated_at
+            updated_at=approval_request.updated_at,
+            attestation_text=approval_request.attestation_text,
+            attestation_signature=approval_request.attestation_signature,
+            attestation_timestamp=approval_request.attestation_timestamp,
+            attestation_ip_address=approval_request.attestation_ip_address
         ))
     
     return response_list
+
+
+@router.get("/attestation-text", status_code=200)
+def get_attestation_text():
+    """
+    Get the responsibility attestation text for off-site custody.
+    
+    Implements CUSTODY-012:
+    - Display attestation text in UI
+    
+    This endpoint:
+    - Returns the standard attestation text that users must review and accept
+    - No authentication required (public endpoint for displaying terms)
+    """
+    return {
+        "attestation_text": ATTESTATION_TEXT
+    }

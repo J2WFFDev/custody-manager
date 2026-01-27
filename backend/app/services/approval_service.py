@@ -3,13 +3,15 @@ Approval service - handles off-site checkout approval logic
 """
 
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from typing import Optional, List
+from datetime import datetime
 
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.models.kit import Kit, KitStatus
 from app.models.user import User
+from app.constants import ATTESTATION_TEXT
 
 
 def create_offsite_checkout_request(
@@ -17,34 +19,55 @@ def create_offsite_checkout_request(
     kit_code: str,
     custodian_name: str,
     requester_user: User,
+    attestation_signature: str,
+    attestation_accepted: bool,
     custodian_id: Optional[int] = None,
-    notes: Optional[str] = None
+    notes: Optional[str] = None,
+    request_ip: Optional[str] = None
 ) -> tuple[ApprovalRequest, Kit]:
     """
-    Create an off-site checkout approval request.
+    Create an off-site checkout approval request with responsibility attestation.
     
-    Implements CUSTODY-011:
+    Implements CUSTODY-011 and CUSTODY-012:
     - As a Parent, I want to check out a kit for my child to take off-site
+    - As a Parent, I want to acknowledge responsibility via a clear attestation statement
     
     Args:
         db: Database session
         kit_code: Kit code (from QR scan or manual entry)
         custodian_name: Name of person receiving custody
         requester_user: User requesting the checkout (must have verified_adult flag)
+        attestation_signature: Digital signature (user's name)
+        attestation_accepted: Must be True to proceed
         custodian_id: Optional user ID if custodian is in system
         notes: Optional notes
+        request_ip: IP address of the requester for audit trail
         
     Returns:
         Tuple of (approval_request, kit)
         
     Raises:
-        HTTPException: If kit not found, already checked out, or user not verified adult
+        HTTPException: If kit not found, already checked out, user not verified adult,
+                      or attestation not accepted
     """
     # Verify requester has verified_adult flag (AUTH-002)
     if not requester_user.verified_adult:
         raise HTTPException(
             status_code=403,
             detail="Only verified adults can request off-site checkout. Please contact an administrator."
+        )
+    
+    # Validate attestation (CUSTODY-012)
+    if not attestation_accepted:
+        raise HTTPException(
+            status_code=400,
+            detail="You must accept the responsibility attestation to request off-site checkout."
+        )
+    
+    if not attestation_signature or not attestation_signature.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Digital signature is required for attestation."
         )
     
     # Find kit by code
@@ -71,7 +94,7 @@ def create_offsite_checkout_request(
             detail=f"There is already a pending approval request for this kit"
         )
     
-    # Create approval request
+    # Create approval request with attestation
     approval_request = ApprovalRequest(
         kit_id=kit.id,
         requester_id=requester_user.id,
@@ -79,7 +102,12 @@ def create_offsite_checkout_request(
         custodian_id=custodian_id,
         custodian_name=custodian_name,
         notes=notes,
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        # Attestation fields (CUSTODY-012)
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature=attestation_signature.strip(),
+        attestation_timestamp=datetime.utcnow(),
+        attestation_ip_address=request_ip
     )
     
     # Save to database
