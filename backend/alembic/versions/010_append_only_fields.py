@@ -1,6 +1,6 @@
 """Add append-only fields to custody_events
 
-Revision ID: 010_add_custody_event_append_only_fields
+Revision ID: 010_append_only_fields
 Revises: 009_add_performance_indexes
 Create Date: 2026-01-27
 
@@ -16,11 +16,10 @@ These fields complete the append-only audit trail requirements.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
-revision = '010_add_custody_event_append_only_fields'
+revision = '010_append_only_fields'
 down_revision = '009_add_performance_indexes'
 branch_labels = None
 depends_on = None

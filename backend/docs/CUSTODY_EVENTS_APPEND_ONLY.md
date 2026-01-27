@@ -56,7 +56,7 @@ These listeners intercept any attempt to update or delete custody events at the 
 
 #### 2. Database Migration
 
-Migration `010_add_custody_event_append_only_fields.py` adds the new fields:
+Migration `010_append_only_fields.py` adds the new fields:
 - `approved_by_id` with foreign key constraint to users table
 - `approved_by_name` for denormalized audit trail
 - `attestation_text`, `attestation_signature`, `attestation_timestamp`, `attestation_ip_address`
