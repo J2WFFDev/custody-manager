@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 # Validate PORT environment variable
@@ -13,7 +13,10 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
 fi
 
 echo "Running database migrations..."
-alembic upgrade head
+if ! alembic upgrade head; then
+    echo "ERROR: Database migration failed"
+    exit 1
+fi
 
 echo "Starting uvicorn server on port ${PORT}..."
 exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
