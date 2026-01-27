@@ -5,6 +5,8 @@ import { kitService } from '../services/kitService';
 import Modal from '../components/Modal';
 import KitRegistrationForm from '../components/KitRegistrationForm';
 import QRCodeDisplay from '../components/QRCodeDisplay';
+import CheckoutModal from '../components/CheckoutModal';
+import type { CustodyCheckoutResponse } from '../types/custody';
 
 const Kits: React.FC = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -12,7 +14,9 @@ const Kits: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [selectedKit, setSelectedKit] = useState<Kit | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Load kits on component mount
   useEffect(() => {
@@ -48,6 +52,23 @@ const Kits: React.FC = () => {
   const handleViewQR = (kit: Kit) => {
     setSelectedKit(kit);
     setShowQRModal(true);
+  };
+
+  const handleCheckout = (kit: Kit) => {
+    setSelectedKit(kit);
+    setShowCheckoutModal(true);
+  };
+
+  const handleCheckoutSuccess = async (response: CustodyCheckoutResponse) => {
+    setShowCheckoutModal(false);
+    setSelectedKit(null);
+    setSuccessMessage(response.message);
+    
+    // Reload kits to update status
+    await loadKits();
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccessMessage(null), 5000);
   };
 
   const getStatusBadgeColor = (status: KitStatus) => {
@@ -91,6 +112,13 @@ const Kits: React.FC = () => {
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
           <p className="text-red-700">{error}</p>
+        </div>
+      )}
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-6">
+          <p className="text-green-700">{successMessage}</p>
         </div>
       )}
 
@@ -148,7 +176,21 @@ const Kits: React.FC = () => {
                 </p>
               )}
 
-              <div className="pt-4 border-t border-gray-200">
+              <div className="pt-4 border-t border-gray-200 space-y-2">
+                {/* Checkout button - only show if kit is available */}
+                {kit.status === KitStatus.AVAILABLE && (
+                  <button
+                    onClick={() => handleCheckout(kit)}
+                    className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    Check Out
+                  </button>
+                )}
+                
+                {/* View QR button */}
                 <button
                   onClick={() => handleViewQR(kit)}
                   className="w-full bg-blue-50 text-blue-600 px-4 py-2 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
@@ -201,6 +243,18 @@ const Kits: React.FC = () => {
           />
         )}
       </Modal>
+
+      {/* Checkout Modal */}
+      {showCheckoutModal && selectedKit && (
+        <CheckoutModal
+          kitCode={selectedKit.code}
+          onClose={() => {
+            setShowCheckoutModal(false);
+            setSelectedKit(null);
+          }}
+          onSuccess={handleCheckoutSuccess}
+        />
+      )}
     </div>
   );
 };
