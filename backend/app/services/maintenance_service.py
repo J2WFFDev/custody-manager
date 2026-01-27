@@ -44,7 +44,7 @@ def open_maintenance(
     if opened_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can open maintenance"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can open maintenance"
         )
     
     # Get kit by code
@@ -114,7 +114,7 @@ def close_maintenance(
     if closed_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can close maintenance"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can close maintenance"
         )
     
     # Get kit by code

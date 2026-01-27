@@ -47,7 +47,7 @@ def checkout_kit_onprem(
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can check out kits"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can check out kits"
         )
     
     # Find kit by code
@@ -122,7 +122,7 @@ def transfer_kit_custody(
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can transfer kit custody"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can transfer kit custody"
         )
     
     # Find kit by code
@@ -194,7 +194,7 @@ def report_kit_lost(
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can report kits as lost"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can report kits as lost"
         )
     
     # Find kit by code
@@ -263,7 +263,7 @@ def report_kit_found(
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can report kits as found"
+            detail=f"Only {', '.join([r.value for r in allowed_roles])} can report kits as found"
         )
     
     # Find kit by code
