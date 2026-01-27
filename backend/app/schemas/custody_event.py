@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, date
 from app.models.custody_event import CustodyEventType
 
@@ -35,6 +35,15 @@ class CustodyCheckoutResponse(BaseModel):
     kit_name: str
     kit_code: str
 
+class EventTimelineResponse(BaseModel):
+    """Response schema for event timeline queries"""
+    events: List[CustodyEventResponse]
+    total: int
+    kit_id: Optional[int] = None
+    kit_name: Optional[str] = None
+    kit_code: Optional[str] = None
+    user_id: Optional[int] = None
+    user_name: Optional[str] = None
 
 class LostFoundRequest(BaseModel):
     """Request schema for reporting a kit as lost or found"""

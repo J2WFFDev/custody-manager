@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, kits, users, custody, maintenance
+from app.api.v1.endpoints import auth, kits, users, custody, events, maintenance
 
 api_router = APIRouter()
 
@@ -16,6 +16,8 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 # Include custody routes
 api_router.include_router(custody.router, prefix="/custody", tags=["custody"])
 
+# Include events routes
+api_router.include_router(events.router, prefix="/events", tags=["events"])
 # Include maintenance routes
 api_router.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"])
 
