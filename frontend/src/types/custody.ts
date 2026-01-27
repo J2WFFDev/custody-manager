@@ -116,6 +116,14 @@ export interface CustodyTransferRequest {
 }
 
 export interface CustodyTransferResponse {
+  message: string;
+  event: CustodyEvent;
+  kit_name: string;
+  kit_code: string;
+  previous_custodian: string;
+  new_custodian: string;
+}
+
 // Lost/Found reporting types (CUSTODY-007)
 export interface LostFoundRequest {
   kit_code: string;
