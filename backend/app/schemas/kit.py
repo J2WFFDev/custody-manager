@@ -8,7 +8,7 @@ class KitBase(BaseModel):
     serial_number: Optional[str] = None
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from app.models.kit import KitStatus
 
 class KitBase(BaseModel):
@@ -43,6 +43,13 @@ class KitResponse(KitBase):
     current_custodian_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
+    # Warning information (CUSTODY-008, CUSTODY-014)
+    has_warning: Optional[bool] = Field(default=False, description="Whether kit has any warnings")
+    overdue_return: Optional[bool] = Field(default=False, description="Whether return is overdue")
+    extended_custody: Optional[bool] = Field(default=False, description="Whether custody has been extended")
+    days_overdue: Optional[int] = Field(default=None, description="Days past expected return date")
+    days_checked_out: Optional[int] = Field(default=None, description="Days since checkout")
+    expected_return_date: Optional[date] = Field(default=None, description="Expected return date")
     
     class Config:
         from_attributes = True
