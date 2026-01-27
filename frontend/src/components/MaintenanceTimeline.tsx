@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { maintenanceService } from '../services/maintenanceService';
 import type { MaintenanceEvent } from '../types/maintenance';
 
@@ -12,12 +12,7 @@ const MaintenanceTimeline: React.FC<MaintenanceTimelineProps> = ({ kitId, kitNam
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadMaintenanceHistory();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [kitId]);
-
-  const loadMaintenanceHistory = async () => {
+  const loadMaintenanceHistory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -33,7 +28,11 @@ const MaintenanceTimeline: React.FC<MaintenanceTimelineProps> = ({ kitId, kitNam
     } finally {
       setLoading(false);
     }
-  };
+  }, [kitId]);
+
+  useEffect(() => {
+    loadMaintenanceHistory();
+  }, [loadMaintenanceHistory]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -108,9 +107,11 @@ const MaintenanceTimeline: React.FC<MaintenanceTimelineProps> = ({ kitId, kitNam
                 </svg>
                 <div>
                   <p className="font-semibold text-yellow-800">Currently in Maintenance</p>
-                  <p className="text-sm text-yellow-700">
-                    Opened by {status.currentEvent?.opened_by_name} on {formatDate(status.currentEvent?.created_at || '')}
-                  </p>
+                  {status.currentEvent && (
+                    <p className="text-sm text-yellow-700">
+                      Opened by {status.currentEvent.opened_by_name} on {formatDate(status.currentEvent.created_at)}
+                    </p>
+                  )}
                 </div>
               </>
             ) : (
