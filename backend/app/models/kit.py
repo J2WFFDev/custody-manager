@@ -26,6 +26,17 @@ class Kit(BaseModel):
     # Stored encrypted in database, transparent to application
     _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
     
+    def __init__(self, **kwargs):
+        # Extract serial_number from kwargs if present
+        serial_number = kwargs.pop('serial_number', None)
+        
+        # Call parent init with remaining kwargs
+        super().__init__(**kwargs)
+        
+        # Set serial_number using the property setter (which encrypts it)
+        if serial_number is not None or 'serial_number' in kwargs or serial_number == '':
+            self.serial_number = serial_number
+    
     @hybrid_property
     def serial_number(self):
         """Decrypt serial number when accessed."""

@@ -40,6 +40,7 @@ def test_create_kit(client):
     response = client.post(
         "/api/v1/kits/",
         json={
+            "code": "TEST-001",
             "name": "Test Kit 1",
             "description": "A test kit",
             "serial_number": "SN-12345"
@@ -48,11 +49,10 @@ def test_create_kit(client):
     
     assert response.status_code == 201
     data = response.json()
+    assert data["code"] == "TEST-001"
     assert data["name"] == "Test Kit 1"
     assert data["description"] == "A test kit"
     assert data["serial_number"] == "SN-12345"
-    assert "qr_code" in data
-    assert len(data["qr_code"]) > 0
     assert "id" in data
     assert "created_at" in data
     assert "updated_at" in data
@@ -62,11 +62,11 @@ def test_list_kits(client):
     # Create a kit first
     client.post(
         "/api/v1/kits/",
-        json={"name": "Kit 1", "description": "First kit"}
+        json={"code": "KIT-001", "name": "Kit 1", "description": "First kit"}
     )
     client.post(
         "/api/v1/kits/",
-        json={"name": "Kit 2", "description": "Second kit"}
+        json={"code": "KIT-002", "name": "Kit 2", "description": "Second kit"}
     )
     
     response = client.get("/api/v1/kits/")
@@ -81,7 +81,7 @@ def test_get_kit_by_id(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "Test Kit", "description": "Test"}
+        json={"code": "TEST-KIT", "name": "Test Kit", "description": "Test"}
     )
     kit_id = create_response.json()["id"]
     
@@ -97,15 +97,15 @@ def test_get_kit_by_qr_code(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "Test Kit", "description": "Test"}
+        json={"code": "QR-TEST-001", "name": "Test Kit", "description": "Test"}
     )
-    qr_code = create_response.json()["qr_code"]
+    code = create_response.json()["code"]
     
-    # Get the kit by QR code
-    response = client.get(f"/api/v1/kits/qr/{qr_code}")
+    # Get the kit by code
+    response = client.get(f"/api/v1/kits/code/{code}")
     assert response.status_code == 200
     data = response.json()
-    assert data["qr_code"] == qr_code
+    assert data["code"] == code
     assert data["name"] == "Test Kit"
 
 def test_update_kit(client):
@@ -113,7 +113,7 @@ def test_update_kit(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "Original Name", "description": "Original"}
+        json={"code": "UPDATE-TEST", "name": "Original Name", "description": "Original"}
     )
     kit_id = create_response.json()["id"]
     
@@ -132,7 +132,7 @@ def test_delete_kit(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "To Delete", "description": "Delete me"}
+        json={"code": "DELETE-TEST", "name": "To Delete", "description": "Delete me"}
     )
     kit_id = create_response.json()["id"]
     
@@ -149,7 +149,7 @@ def test_get_qr_image_png(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "Test Kit", "description": "Test"}
+        json={"code": "PNG-TEST", "name": "Test Kit", "description": "Test"}
     )
     kit_id = create_response.json()["id"]
     
@@ -164,7 +164,7 @@ def test_get_qr_image_svg(client):
     # Create a kit
     create_response = client.post(
         "/api/v1/kits/",
-        json={"name": "Test Kit", "description": "Test"}
+        json={"code": "SVG-TEST", "name": "Test Kit", "description": "Test"}
     )
     kit_id = create_response.json()["id"]
     
@@ -177,25 +177,25 @@ def test_get_qr_image_svg(client):
 def test_qr_code_uniqueness(client):
     """Test that QR codes are unique"""
     # Create multiple kits
-    qr_codes = set()
+    codes = set()
     for i in range(10):
         response = client.post(
             "/api/v1/kits/",
-            json={"name": f"Kit {i}", "description": f"Kit number {i}"}
+            json={"code": f"KIT-{i:03d}", "name": f"Kit {i}", "description": f"Kit number {i}"}
         )
         assert response.status_code == 201
-        qr_code = response.json()["qr_code"]
-        qr_codes.add(qr_code)
+        code = response.json()["code"]
+        codes.add(code)
     
-    # All QR codes should be unique
-    assert len(qr_codes) == 10
+    # All codes should be unique
+    assert len(codes) == 10
 
 def test_kit_not_found(client):
     """Test 404 error when kit is not found"""
     response = client.get("/api/v1/kits/999")
     assert response.status_code == 404
     
-    response = client.get("/api/v1/kits/qr/NONEXISTENT")
+    response = client.get("/api/v1/kits/code/NONEXISTENT")
     assert response.status_code == 404
     
     response = client.get("/api/v1/kits/999/qr-image")
