@@ -19,7 +19,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add encrypted serial_number column to kits table."""
+    """Add encrypted serial_number column to kits table.
+    
+    This implements AUDIT-003: Serial numbers are encrypted in the database
+    to protect them from data breaches. The encryption is handled automatically
+    by the EncryptedString SQLAlchemy type.
+    
+    Encrypted data is larger than plaintext, so we use 500 chars to handle
+    encryption overhead for a 50-char serial number.
+    """
     op.add_column('kits', sa.Column('serial_number', sa.String(length=500), nullable=True))
 
 
