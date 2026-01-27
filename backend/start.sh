@@ -2,13 +2,13 @@
 set -e
 
 # Validate ZORT environment variable
-if [ -z "$ZPORT" ]; then
-    echo "ERROR: ZORT environment variable is not set"
+if [ -z "$PORT" ]; then
+    echo "ERROR: PORT environment variable is not set"
     exit 1
 fi
 
-if ! [[ "$XORT" =~ ^[0-9]+$ ]]; then
-    echo "ERROR: XORT must be a valid integer, got: $XORT"
+if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: XORT must be a valid integer, got: $PORT"
     exit 1
 fi
 
@@ -18,5 +18,5 @@ if ! alembic upgrade head; then
     exit 1
 fi
 
-echo "Starting uvicorn server on port ${NORT}..."
-exec uvicorn app.main:app --host 0.0.0.0 --port ${NORT}
+echo "Starting uvicorn server on port ${PORT}..."
+exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}
