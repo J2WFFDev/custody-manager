@@ -102,22 +102,6 @@ def transfer_kit_custody(
     
     Implements CUSTODY-005:
     - As a Coach, I want to transfer custody of a kit to another user, so that handoffs are documented.
-    """
-    # Implementation would go here
-    pass
-
-
-def report_kit_lost(
-    db: Session,
-    kit_code: str,
-    initiated_by_user: User,
-    notes: Optional[str] = None
-) -> tuple[CustodyEvent, Kit]:
-    """
-    Report a kit as lost.
-    
-    Implements CUSTODY-007:
-    - As an Armorer, I want to report a kit as lost, so that everyone knows it's missing
     
     Args:
         db: Database session
@@ -139,21 +123,6 @@ def report_kit_lost(
         raise HTTPException(
             status_code=403,
             detail=f"Only {', '.join(allowed_roles)} can transfer kit custody"
-        initiated_by_user: User reporting the kit as lost (must be Armorer or Admin)
-        notes: Optional notes about circumstances
-        
-    Returns:
-        Tuple of (custody_event, kit)
-        
-    Raises:
-        HTTPException: If kit not found, already lost, or user lacks permission
-    """
-    # Verify permissions - only Armorer or Admin can report kits as lost
-    allowed_roles = ["armorer", "admin"]
-    if initiated_by_user.role not in allowed_roles:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can report kits as lost"
         )
     
     # Find kit by code
@@ -186,6 +155,53 @@ def report_kit_lost(
     # Update kit custodian
     kit.current_custodian_id = new_custodian_id
     kit.current_custodian_name = new_custodian_name
+    
+    # Save to database
+    db.add(custody_event)
+    db.commit()
+    db.refresh(custody_event)
+    db.refresh(kit)
+    
+    return custody_event, kit, previous_custodian
+
+
+def report_kit_lost(
+    db: Session,
+    kit_code: str,
+    initiated_by_user: User,
+    notes: Optional[str] = None
+) -> tuple[CustodyEvent, Kit]:
+    """
+    Report a kit as lost.
+    
+    Implements CUSTODY-007:
+    - As an Armorer, I want to report a kit as lost, so that everyone knows it's missing
+    
+    Args:
+        db: Database session
+        kit_code: Kit code (from QR scan or manual entry)
+        initiated_by_user: User reporting the kit as lost (must be Armorer or Admin)
+        notes: Optional notes about circumstances
+        
+    Returns:
+        Tuple of (custody_event, kit)
+        
+    Raises:
+        HTTPException: If kit not found, already lost, or user lacks permission
+    """
+    # Verify permissions - only Armorer or Admin can report kits as lost
+    allowed_roles = ["armorer", "admin"]
+    if initiated_by_user.role not in allowed_roles:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Only {', '.join(allowed_roles)} can report kits as lost"
+        )
+    
+    # Find kit by code
+    kit = db.query(Kit).filter(Kit.code == kit_code).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail=f"Kit with code '{kit_code}' not found")
+    
     # Check kit status - cannot report as lost if already lost
     if kit.status == KitStatus.lost:
         raise HTTPException(
@@ -285,5 +301,4 @@ def report_kit_found(
     db.refresh(custody_event)
     db.refresh(kit)
     
-    return custody_event, kit, previous_custodian
     return custody_event, kit

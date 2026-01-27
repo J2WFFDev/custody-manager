@@ -23,9 +23,9 @@ from app.schemas.approval_request import (
     ApprovalDecisionResponse,
     ApprovalRequestResponse
 )
-from app.services.custody_service import checkout_kit_onprem, transfer_kit_custody
 from app.services.custody_service import (
     checkout_kit_onprem,
+    transfer_kit_custody,
     report_kit_lost,
     report_kit_found
 )
@@ -470,9 +470,9 @@ def export_custody_events(
     )
 
 
-@router.post("/lost", response_model=CustodyEventResponse)
+@router.post("/lost", response_model=LostFoundResponse, status_code=201)
 def report_lost(
-    request: ReportLostRequest,
+    request: LostFoundRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
