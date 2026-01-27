@@ -10,7 +10,7 @@ import json
 import csv
 from io import StringIO
 from datetime import datetime, timedelta
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.kit import Kit, KitStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
 
@@ -23,7 +23,7 @@ def test_export_csv_success(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -34,7 +34,7 @@ def test_export_csv_success(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -104,7 +104,7 @@ def test_export_json_success(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -115,7 +115,7 @@ def test_export_json_success(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -171,7 +171,7 @@ def test_export_with_date_filtering(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -182,7 +182,7 @@ def test_export_with_date_filtering(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -247,7 +247,7 @@ def test_export_requires_admin(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -269,7 +269,7 @@ def test_export_invalid_format(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -281,7 +281,7 @@ def test_export_invalid_format(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -303,7 +303,7 @@ def test_export_invalid_date_format(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -315,7 +315,7 @@ def test_export_invalid_date_format(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -337,7 +337,7 @@ def test_export_invalid_date_range(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -349,7 +349,7 @@ def test_export_invalid_date_range(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)
@@ -373,7 +373,7 @@ def test_export_empty_results(client, db_session):
         name="Test Admin",
         oauth_provider="google",
         oauth_id="test-admin-id",
-        role="admin",
+        role=UserRole.admin,
         is_active=True
     )
     db_session.add(admin)
@@ -385,7 +385,7 @@ def test_export_empty_results(client, db_session):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-id",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db_session.add(coach)

@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.custody_event import CustodyEvent, CustodyEventType
 
 # Use in-memory SQLite for testing
@@ -80,7 +80,7 @@ def sample_coach(db_setup):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-123",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db.add(user)

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.kit import Kit
 from app.models.maintenance_event import MaintenanceEvent
 from app.schemas.maintenance_event import (
@@ -32,7 +32,7 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
     """
     # TODO: Replace with real JWT authentication
     # For development/testing, return a mock armorer user
-    user = db.query(User).filter(User.role == "armorer").first()
+    user = db.query(User).filter(User.role == UserRole.armorer).first()
     if not user:
         # Create a mock armorer user if none exists
         user = User(
@@ -40,7 +40,7 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
             name="Test Armorer",
             oauth_provider="google",
             oauth_id="test-armorer-oauth-id",
-            role="armorer",
+            role=UserRole.armorer,
             is_active=True
         )
         db.add(user)

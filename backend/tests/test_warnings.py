@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.models.kit import Kit, KitStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.warnings_service import calculate_kit_warnings, get_all_kits_with_warnings
 from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS
 
@@ -46,7 +46,7 @@ def test_overdue_return_warning(db_session: Session):
         name="Test User",
         oauth_provider="google",
         oauth_id="test-123",
-        role="coach"
+        role=UserRole.coach
     )
     db_session.add(user)
     db_session.commit()
@@ -93,7 +93,7 @@ def test_extended_custody_warning(db_session: Session):
         name="Test User",
         oauth_provider="google",
         oauth_id="test-123",
-        role="coach"
+        role=UserRole.coach
     )
     db_session.add(user)
     db_session.commit()
@@ -143,7 +143,7 @@ def test_no_warning_for_recent_checkout(db_session: Session):
         name="Test User",
         oauth_provider="google",
         oauth_id="test-123",
-        role="coach"
+        role=UserRole.coach
     )
     db_session.add(user)
     db_session.commit()
@@ -187,7 +187,7 @@ def test_get_all_kits_with_warnings(db_session: Session):
         name="Test User",
         oauth_provider="google",
         oauth_id="test-123",
-        role="coach"
+        role=UserRole.coach
     )
     db_session.add(user)
     db_session.commit()
@@ -247,7 +247,7 @@ def test_future_expected_return_no_warning(db_session: Session):
         name="Test User",
         oauth_provider="google",
         oauth_id="test-123",
-        role="coach"
+        role=UserRole.coach
     )
     db_session.add(user)
     db_session.commit()

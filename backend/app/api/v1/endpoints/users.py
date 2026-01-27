@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import UserResponse, UserUpdate
 from app.core.security import verify_token
 from app.constants import VALID_ROLES
@@ -31,7 +31,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
 
 def verify_admin(user: User):
     """Verify that the user has admin role"""
-    if user.role != "admin":
+    if user.role != UserRole.admin:
         raise HTTPException(status_code=403, detail="Admin access required")
 
 @router.get("/", response_model=List[UserResponse])
