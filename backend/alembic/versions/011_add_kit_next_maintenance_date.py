@@ -1,7 +1,7 @@
 """add next_maintenance_date to kits
 
-Revision ID: 008_add_kit_next_maintenance_date
-Revises: 007_convert_user_role_to_enum
+Revision ID: 011_add_kit_next_maintenance_date
+Revises: 010_add_custody_event_append_only_fields
 Create Date: 2026-01-27
 
 Implements MAINT-002: Track next maintenance due date for kits
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '008_add_kit_next_maintenance_date'
-down_revision = '007_convert_user_role_to_enum'
+revision = '011_add_kit_next_maintenance_date'
+down_revision = '010_add_custody_event_append_only_fields'
 branch_labels = None
 depends_on = None
 
