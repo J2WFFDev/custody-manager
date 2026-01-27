@@ -7,7 +7,7 @@ Implements CUSTODY-008 and CUSTODY-014:
 """
 
 from sqlalchemy.orm import Session
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from datetime import date, datetime, timedelta
 
 from app.models.kit import Kit, KitStatus
@@ -15,7 +15,7 @@ from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS
 
 
-def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, any]:
+def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
     """
     Calculate warnings for a checked-out kit.
     
@@ -85,7 +85,7 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, any]:
     return warnings
 
 
-def get_all_kits_with_warnings(db: Session) -> List[Dict[str, any]]:
+def get_all_kits_with_warnings(db: Session) -> List[Dict[str, Any]]:
     """
     Get all kits that have warnings.
     
