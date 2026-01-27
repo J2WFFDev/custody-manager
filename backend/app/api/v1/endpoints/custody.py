@@ -14,13 +14,16 @@ router = APIRouter()
 
 
 # Dependency to get current user - simplified for now
-# In production, this would verify JWT token
+# SECURITY WARNING: This is mock authentication for development/testing only
+# TODO: Replace with real JWT authentication before production deployment
 async def get_current_user(db: Session = Depends(get_db)) -> User:
     """
     Get current authenticated user.
     
-    For now, this returns a mock user for testing.
-    In production, this would verify JWT token and fetch real user.
+    IMPORTANT: This is a MOCK implementation for development/testing.
+    In production, this MUST verify JWT tokens and return the authenticated user.
+    
+    Returns a mock coach user to allow testing of the checkout flow.
     """
     # TODO: Replace with real JWT authentication
     # For development/testing, return a mock coach user
