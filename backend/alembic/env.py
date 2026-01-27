@@ -16,7 +16,9 @@ from app.config import settings
 # Import all models here so Alembic can detect them
 from app.models.kit import Kit
 from app.models.user import User
-# from app.models.kit import Kit
+from app.models.custody_event import CustodyEvent
+from app.models.approval_request import ApprovalRequest
+from app.models.maintenance_event import MaintenanceEvent
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
