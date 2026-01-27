@@ -1,10 +1,11 @@
 """
 Constants used throughout the application
 """
+from app.models.user import UserRole
 
-# Valid user roles
-VALID_ROLES = ["admin", "armorer", "coach", "volunteer", "parent"]
-DEFAULT_ROLE = "parent"
+# Valid user roles - using UserRole enum
+VALID_ROLES = [role.value for role in UserRole]
+DEFAULT_ROLE = UserRole.parent.value
 
 # Soft Warning Thresholds (CUSTODY-008, CUSTODY-014)
 # These control when warnings are displayed for custody events

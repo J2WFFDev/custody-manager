@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from app.models.user import UserRole
 
 class UserBase(BaseModel):
     email: EmailStr
@@ -9,17 +10,18 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     oauth_provider: str
     oauth_id: str
-    role: str = "parent"  # Default role
+    role: UserRole = UserRole.parent  # Default role
 
 class UserResponse(UserBase):
     id: int
-    role: str
+    role: UserRole
     verified_adult: bool
     is_active: bool
     created_at: datetime
     
     class Config:
         from_attributes = True
+        use_enum_values = True
 
 class Token(BaseModel):
     access_token: str
@@ -27,5 +29,5 @@ class Token(BaseModel):
     user: UserResponse
 
 class UserUpdate(BaseModel):
-    role: Optional[str] = None
+    role: Optional[UserRole] = None
     verified_adult: Optional[bool] = None

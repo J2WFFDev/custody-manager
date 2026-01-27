@@ -102,6 +102,11 @@ def transfer_kit_custody(
     
     Implements CUSTODY-005:
     - As a Coach, I want to transfer custody of a kit to another user, so that handoffs are documented.
+    """
+    # Implementation would go here
+    pass
+
+
 def report_kit_lost(
     db: Session,
     kit_code: str,
