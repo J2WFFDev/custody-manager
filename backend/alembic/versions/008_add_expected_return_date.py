@@ -24,9 +24,7 @@ def upgrade():
     # Add expected_return_date to custody_events table
     op.add_column('custody_events', sa.Column('expected_return_date', sa.Date(), nullable=True))
     
-    # Add expected_return_date to approval_requests table (if not already present from model)
-    # Note: The model already has this field, but it may not be in the database yet
-    # We use a conditional approach to handle existing columns gracefully
+    # Add expected_return_date to approval_requests table
     op.add_column('approval_requests', sa.Column('expected_return_date', sa.Date(), nullable=True))
 
 
