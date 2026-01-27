@@ -28,6 +28,7 @@ export interface CustodyEvent {
   custodian_name: string;
   notes?: string;
   location_type: string;
+  expected_return_date?: string;
   created_at: string;
 }
 
@@ -36,6 +37,7 @@ export interface CustodyCheckoutRequest {
   custodian_name: string;
   custodian_id?: number;
   notes?: string;
+  expected_return_date?: string;
 }
 
 export interface CustodyCheckoutResponse {
@@ -51,6 +53,7 @@ export interface OffSiteCheckoutRequest {
   custodian_name: string;
   custodian_id?: number;
   notes?: string;
+  expected_return_date?: string;
   // Attestation fields (CUSTODY-012)
   attestation_signature: string;
   attestation_accepted: boolean;
@@ -71,6 +74,7 @@ export interface ApprovalRequest {
   approver_role?: string;
   notes?: string;
   denial_reason?: string;
+  expected_return_date?: string;
   created_at: string;
   updated_at: string;
   // Attestation fields (CUSTODY-012)
