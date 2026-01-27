@@ -34,6 +34,29 @@ export interface EventTimelineResponse {
   user_name?: string;
 }
 
+/**
+ * Build query parameters for event requests
+ */
+function buildEventQueryParams(params?: {
+  event_type?: string;
+  start_date?: string;
+  end_date?: string;
+  sort_order?: 'asc' | 'desc';
+  skip?: number;
+  limit?: number;
+}): string {
+  const queryParams = new URLSearchParams();
+  if (params?.event_type) queryParams.set('event_type', params.event_type);
+  if (params?.start_date) queryParams.set('start_date', params.start_date);
+  if (params?.end_date) queryParams.set('end_date', params.end_date);
+  if (params?.sort_order) queryParams.set('sort_order', params.sort_order);
+  if (params?.skip !== undefined) queryParams.set('skip', params.skip.toString());
+  if (params?.limit !== undefined) queryParams.set('limit', params.limit.toString());
+
+  const query = queryParams.toString();
+  return query ? `?${query}` : '';
+}
+
 export const eventsService = {
   /**
    * Get event timeline for a specific kit
@@ -49,16 +72,8 @@ export const eventsService = {
       limit?: number;
     }
   ): Promise<EventTimelineResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.event_type) queryParams.set('event_type', params.event_type);
-    if (params?.start_date) queryParams.set('start_date', params.start_date);
-    if (params?.end_date) queryParams.set('end_date', params.end_date);
-    if (params?.sort_order) queryParams.set('sort_order', params.sort_order);
-    if (params?.skip !== undefined) queryParams.set('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.set('limit', params.limit.toString());
-
-    const query = queryParams.toString();
-    const endpoint = `/events/kit/${kitId}${query ? `?${query}` : ''}`;
+    const query = buildEventQueryParams(params);
+    const endpoint = `/events/kit/${kitId}${query}`;
     
     return api.get<EventTimelineResponse>(endpoint);
   },
@@ -77,16 +92,8 @@ export const eventsService = {
       limit?: number;
     }
   ): Promise<EventTimelineResponse> {
-    const queryParams = new URLSearchParams();
-    if (params?.event_type) queryParams.set('event_type', params.event_type);
-    if (params?.start_date) queryParams.set('start_date', params.start_date);
-    if (params?.end_date) queryParams.set('end_date', params.end_date);
-    if (params?.sort_order) queryParams.set('sort_order', params.sort_order);
-    if (params?.skip !== undefined) queryParams.set('skip', params.skip.toString());
-    if (params?.limit !== undefined) queryParams.set('limit', params.limit.toString());
-
-    const query = queryParams.toString();
-    const endpoint = `/events/user/${userId}${query ? `?${query}` : ''}`;
+    const query = buildEventQueryParams(params);
+    const endpoint = `/events/user/${userId}${query}`;
     
     return api.get<EventTimelineResponse>(endpoint);
   },

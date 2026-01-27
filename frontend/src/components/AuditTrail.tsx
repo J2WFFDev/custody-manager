@@ -119,9 +119,16 @@ const AuditTrail: React.FC<AuditTrailProps> = ({ kitId, userId, showFilters = tr
     }
     // For maintenance events
     if (event.opened_by_name) {
+      // Check if this is a close event based on closed_by_name being present
+      if (event.closed_by_name && event.event_type === 'close') {
+        return {
+          actor: event.closed_by_name,
+          role: 'Closed maintenance',
+        };
+      }
       return {
         actor: event.opened_by_name,
-        role: event.closed_by_name ? `Closed by ${event.closed_by_name}` : 'Opened',
+        role: 'Opened maintenance',
       };
     }
     if (event.performed_by_name) {
