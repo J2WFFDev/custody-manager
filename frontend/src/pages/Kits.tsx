@@ -10,6 +10,7 @@ import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
 import TransferCustodyModal from '../components/TransferCustodyModal';
 import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, CustodyTransferResponse, LostFoundResponse } from '../types/custody';
 import MaintenanceModal from '../components/MaintenanceModal';
+import MaintenanceTimeline from '../components/MaintenanceTimeline';
 import LostFoundModal from '../components/LostFoundModal';
 import WarningBadge from '../components/WarningBadge';
 import type { MaintenanceOpenResponse, MaintenanceCloseResponse } from '../types/maintenance';
@@ -24,6 +25,7 @@ const Kits: React.FC = () => {
   const [showOffSiteCheckoutModal, setShowOffSiteCheckoutModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [showMaintenanceTimelineModal, setShowMaintenanceTimelineModal] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState<'open' | 'close'>('open');
   const [showLostFoundModal, setShowLostFoundModal] = useState(false);
   const [lostFoundMode, setLostFoundMode] = useState<'lost' | 'found'>('lost');
@@ -162,6 +164,11 @@ const Kits: React.FC = () => {
     
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(null), 5000);
+  };
+
+  const handleViewMaintenanceHistory = (kit: Kit) => {
+    setSelectedKit(kit);
+    setShowMaintenanceTimelineModal(true);
   };
 
   const getStatusBadgeColor = (status: KitStatus) => {
@@ -377,6 +384,17 @@ const Kits: React.FC = () => {
                   </svg>
                   View QR Code
                 </button>
+                
+                {/* View Maintenance History button */}
+                <button
+                  onClick={() => handleViewMaintenanceHistory(kit)}
+                  className="w-full bg-gray-50 text-gray-700 px-4 py-2 rounded hover:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                  </svg>
+                  Maintenance History
+                </button>
               </div>
 
               <div className="mt-2 text-xs text-gray-400">
@@ -485,6 +503,23 @@ const Kits: React.FC = () => {
           onSuccess={handleLostFoundSuccess}
         />
       )}
+
+      {/* Maintenance Timeline Modal */}
+      <Modal
+        isOpen={showMaintenanceTimelineModal}
+        onClose={() => {
+          setShowMaintenanceTimelineModal(false);
+          setSelectedKit(null);
+        }}
+        title="Maintenance History"
+      >
+        {selectedKit && (
+          <MaintenanceTimeline
+            kitId={selectedKit.id}
+            kitName={selectedKit.name}
+          />
+        )}
+      </Modal>
     </div>
   );
 };
