@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://localhost/custody_manager"
     
     # Security
-    SECRET_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not provided
+    SECRET_KEY: str = ""  # Must be set via environment variable
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -55,5 +55,28 @@ class Settings(BaseSettings):
         """Get Microsoft OAuth metadata URL with validated tenant ID."""
         tenant_id = self.MICROSOFT_TENANT_ID or "common"
         return f'https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration'
+    
+    def validate_secret_key(self) -> None:
+        """Validate that SECRET_KEY is properly configured for OAuth session security."""
+        if not self.SECRET_KEY:
+            # For development, auto-generate but warn
+            if self.ENVIRONMENT == "development":
+                self.SECRET_KEY = secrets.token_urlsafe(32)
+                print("WARNING: Using auto-generated SECRET_KEY for development. Set SECRET_KEY in .env for production.")
+            else:
+                raise ValueError(
+                    "SECRET_KEY must be set in environment variables for production. "
+                    "OAuth session management requires a persistent SECRET_KEY. "
+                    "Generate one with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+                )
+        
+        # Validate minimum length (32 characters recommended)
+        if len(self.SECRET_KEY) < 32:
+            raise ValueError(
+                f"SECRET_KEY must be at least 32 characters long (current: {len(self.SECRET_KEY)}). "
+                "Generate a secure key with: python -c 'import secrets; print(secrets.token_urlsafe(32))'"
+            )
 
 settings = Settings()
+# Validate SECRET_KEY on startup
+settings.validate_secret_key()
