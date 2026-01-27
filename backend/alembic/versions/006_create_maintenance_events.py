@@ -46,7 +46,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_maintenance_events_id'), 'maintenance_events', ['id'], unique=False)
     op.create_index(op.f('ix_maintenance_events_kit_id'), 'maintenance_events', ['kit_id'], unique=False)
 
-
 def downgrade() -> None:
     # Drop maintenance_events table
     op.drop_index(op.f('ix_maintenance_events_kit_id'), table_name='maintenance_events')
