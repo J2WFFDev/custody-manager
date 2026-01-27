@@ -469,6 +469,7 @@ def export_custody_events(
         }
     )
 
+@router.post("/report-lost", response_model=LostFoundResponse, status_code=201)
 
 @router.post("/lost", response_model=LostFoundResponse, status_code=201)
 def report_lost(

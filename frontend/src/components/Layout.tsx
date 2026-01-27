@@ -1,21 +1,43 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
+import { authService, User } from '../services/authService';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  // Mock user data - in a real app, this would come from auth context
-  const [currentUser] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'admin',
-    verifiedAdult: true
-  });
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const isLoggedIn = true; // Mock login status
+  useEffect(() => {
+    const loadUser = async () => {
+      if (authService.isAuthenticated()) {
+        const user = authService.getUser();
+        if (user) {
+          setCurrentUser(user);
+        } else {
+          // Fetch user from API if not in storage
+          const fetchedUser = await authService.getCurrentUser();
+          setCurrentUser(fetchedUser);
+        }
+      }
+      setLoading(false);
+    };
+
+    loadUser();
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    navigate('/login');
+  };
+
+  const isLoggedIn = authService.isAuthenticated();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,34 +49,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               WilcoSS Custody Manager
             </Link>
             <div className="flex items-center gap-6">
-              <div className="flex gap-4">
-                <Link to="/" className="hover:text-blue-200 transition-colors">
-                  Home
-                </Link>
-                <Link to="/kits" className="hover:text-blue-200 transition-colors">
-                  Kits
-                </Link>
-                <Link to="/approvals" className="hover:text-blue-200 transition-colors">
-                  Approvals
-                </Link>
-                <Link to="/users" className="hover:text-blue-200 transition-colors">
-                  Users
-                </Link>
-                <Link to="/audit" className="hover:text-blue-200 transition-colors">
-                  Audit
-                </Link>
-                {!isLoggedIn && (
-                  <Link to="/login" className="hover:text-blue-200 transition-colors">
-                    Login
-                  </Link>
-                )}
-              </div>
               {isLoggedIn && (
-                <UserProfile 
-                  name={currentUser.name}
-                  role={currentUser.role}
-                  verifiedAdult={currentUser.verifiedAdult}
-                />
+                <div className="flex gap-4">
+                  <Link to="/" className="hover:text-blue-200 transition-colors">
+                    Home
+                  </Link>
+                  <Link to="/kits" className="hover:text-blue-200 transition-colors">
+                    Kits
+                  </Link>
+                  <Link to="/approvals" className="hover:text-blue-200 transition-colors">
+                    Approvals
+                  </Link>
+                  <Link to="/users" className="hover:text-blue-200 transition-colors">
+                    Users
+                  </Link>
+                  <Link to="/audit" className="hover:text-blue-200 transition-colors">
+                    Audit
+                  </Link>
+                </div>
+              )}
+              {!isLoggedIn && (
+                <Link to="/login" className="hover:text-blue-200 transition-colors">
+                  Login
+                </Link>
+              )}
+              {isLoggedIn && currentUser && (
+                <div className="flex items-center gap-4">
+                  <UserProfile 
+                    name={currentUser.name}
+                    role={currentUser.role}
+                    verifiedAdult={currentUser.verified_adult}
+                  />
+                  <button
+                    onClick={handleLogout}
+                    className="px-3 py-1 text-sm bg-blue-700 hover:bg-blue-800 rounded transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
             </div>
           </div>
