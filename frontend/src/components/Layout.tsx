@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
-import { authService, User } from '../services/authService';
+import { authService } from '../services/authService';
+import type { User } from '../services/authService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -25,7 +25,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           setCurrentUser(fetchedUser);
         }
       }
-      setLoading(false);
     };
 
     loadUser();
