@@ -157,7 +157,7 @@ def close_maintenance(
     if parts_replaced:
         # Append to existing parts_replaced if any
         if open_event.parts_replaced:
-            open_event.parts_replaced = f"{open_event.parts_replaced}\n\nReplaced: {parts_replaced}"
+            open_event.parts_replaced = f"{open_event.parts_replaced}\n\n{parts_replaced}"
         else:
             open_event.parts_replaced = parts_replaced
     
