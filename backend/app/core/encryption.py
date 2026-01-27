@@ -102,12 +102,6 @@ class EncryptedString(TypeDecorator):
         return decrypted_bytes.decode()
 
 
-from cryptography.fernet import Fernet
-from app.config import settings
-import base64
-from typing import Optional
-
-
 class FieldEncryption:
     """
     Handles field-level encryption for sensitive database fields.
