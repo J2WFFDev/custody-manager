@@ -5,7 +5,8 @@ export const CustodyEventType = {
   CHECKOUT_OFFSITE: "checkout_offsite",
   CHECKIN: "checkin",
   TRANSFER: "transfer",
-  LOST: "lost"
+  LOST: "lost",
+  FOUND: "found"
 } as const;
 
 export type CustodyEventType = typeof CustodyEventType[keyof typeof CustodyEventType];
@@ -104,4 +105,17 @@ export interface ApprovalDecisionResponse {
 // Attestation response (CUSTODY-012)
 export interface AttestationTextResponse {
   attestation_text: string;
+}
+
+// Lost/Found reporting types (CUSTODY-007)
+export interface LostFoundRequest {
+  kit_code: string;
+  notes?: string;
+}
+
+export interface LostFoundResponse {
+  message: string;
+  event: CustodyEvent;
+  kit_name: string;
+  kit_code: string;
 }
