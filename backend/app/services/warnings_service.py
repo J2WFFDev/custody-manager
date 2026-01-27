@@ -47,6 +47,9 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
         "next_maintenance_date": None
     }
     
+    # Get today's date once for efficiency
+    today = date.today()
+    
     # Check for custody warnings only for checked-out kits
     if kit.status == KitStatus.checked_out:
         # Get the most recent checkout event for this kit
@@ -63,7 +66,6 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
             warnings["checkout_date"] = latest_checkout.created_at
             
             # Calculate days checked out
-            today = date.today()
             checkout_date = latest_checkout.created_at.date()
             days_checked_out = (today - checkout_date).days
             warnings["days_checked_out"] = days_checked_out
@@ -88,7 +90,6 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
     # Check for maintenance warnings for all kits (except those in maintenance)
     if kit.next_maintenance_date and kit.status != KitStatus.in_maintenance:
         warnings["next_maintenance_date"] = kit.next_maintenance_date
-        today = date.today()
         
         if today > kit.next_maintenance_date:
             # Maintenance is overdue

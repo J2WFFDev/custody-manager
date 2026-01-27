@@ -15,7 +15,7 @@ class MaintenanceEvent(BaseModel):
     closed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     closed_by_name = Column(String(200), nullable=True)
     
-    # Maintenance details
+    # Maintenance details - using Text for potentially long content
     notes = Column(Text, nullable=True)
     parts_replaced = Column(Text, nullable=True)
     round_count = Column(Integer, nullable=True)
