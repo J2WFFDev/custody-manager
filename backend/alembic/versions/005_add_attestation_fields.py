@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '005_add_attestation_fields'
-down_revision = '004_create_approval_requests'
+revision = '005'
+down_revision = '004'
 branch_labels = None
 depends_on = None
 

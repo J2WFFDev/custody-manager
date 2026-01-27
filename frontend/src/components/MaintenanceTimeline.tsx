@@ -151,7 +151,7 @@ const MaintenanceTimeline: React.FC<MaintenanceTimelineProps> = ({ kitId, kitNam
           
           {/* Events */}
           <div className="space-y-6">
-            {events.map((event, index) => (
+            {events.map((event) => (
               <div key={event.id} className="relative pl-10 md:pl-14">
                 {/* Timeline Dot */}
                 <div className={`absolute left-0 md:left-2 w-8 h-8 rounded-full flex items-center justify-center ${

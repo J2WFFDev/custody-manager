@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '003_create_custody_events'
-down_revision: Union[str, None] = '002_create_kits'
+revision: str = '003'
+down_revision: Union[str, None] = '002'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -23,8 +23,8 @@ def upgrade() -> None:
     op.create_table(
         'custody_events',
         sa.Column('id', sa.Integer(), nullable=False),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
+        sa.Column('updated_at', sa.DateTime(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=True),
         # Event type enum
         sa.Column('event_type', sa.Enum('checkout_onprem', 'checkout_offsite', 'checkin', 'transfer', 'lost', name='custodyeventtype'), nullable=False),
         # Kit reference
