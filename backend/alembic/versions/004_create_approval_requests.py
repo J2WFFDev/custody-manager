@@ -59,4 +59,5 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_approval_requests_kit_id'), table_name='approval_requests')
     op.drop_index(op.f('ix_approval_requests_id'), table_name='approval_requests')
     op.drop_table('approval_requests')
-    op.execute('DROP TYPE approvalstatus')
+    # Drop enum type - use DROP TYPE IF EXISTS for safety
+    op.execute('DROP TYPE IF EXISTS approvalstatus')
