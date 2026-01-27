@@ -25,3 +25,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
+    verified_adult: Optional[bool] = None
