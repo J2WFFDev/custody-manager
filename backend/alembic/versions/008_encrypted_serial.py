@@ -28,9 +28,9 @@ def upgrade() -> None:
     Encrypted data is larger than plaintext, so we use 500 chars to handle
     encryption overhead for a 50-char serial number.
     """
-    op.add_column('kits', sa.Column('serial_number', sa.String(length=500), nullable=True))
+    op.add_column('kits', sa.Column('serial_number_encrypted', sa.String(length=500), nullable=True))
 
 
 def downgrade() -> None:
     """Remove serial_number column from kits table."""
-    op.drop_column('kits', 'serial_number')
+    op.drop_column('kits', 'serial_number_encrypted')
