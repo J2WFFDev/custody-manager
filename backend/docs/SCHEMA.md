@@ -50,6 +50,7 @@ The WilcoSS Custody & Equipment Manager uses PostgreSQL as its primary database.
 - Primary: `ix_users_id` (id)
 - Unique: `ix_users_email` (email)
 - Performance: `ix_users_oauth_id` (oauth_id)
+- Performance: `ix_users_role` (role) - for role-based queries
 
 ---
 
@@ -107,6 +108,8 @@ class KitStatus(str, enum.Enum):
 **Indexes**:
 - Primary: `ix_custody_events_id` (id)
 - Performance: `ix_custody_events_kit_id` (kit_id) - for kit history queries
+- Performance: `ix_custody_events_event_type` (event_type) - for filtering by event type
+- Performance: `ix_custody_events_kit_id_created_at` (kit_id, created_at) - composite index for timeline queries
 
 **Schema**:
 | Column | Type | Constraints | Description |
@@ -152,6 +155,7 @@ class CustodyEventType(str, enum.Enum):
 **Indexes**:
 - Primary: `ix_approval_requests_id` (id)
 - Performance: `ix_approval_requests_kit_id` (kit_id)
+- Performance: `ix_approval_requests_status` (status) - for filtering pending/approved/denied requests
 
 **Schema**:
 | Column | Type | Constraints | Description |
@@ -200,6 +204,7 @@ class ApprovalStatus(str, enum.Enum):
 **Indexes**:
 - Primary: `ix_maintenance_events_id` (id)
 - Performance: `ix_maintenance_events_kit_id` (kit_id)
+- Performance: `ix_maintenance_events_is_open` (is_open) - for finding active maintenance events
 
 **Schema**:
 | Column | Type | Constraints | Description |
@@ -233,6 +238,7 @@ class ApprovalStatus(str, enum.Enum):
 | 006 | `006_create_maintenance_events.py` | Create maintenance tracking table |
 | 007 | `007_convert_user_role_to_enum.py` | Convert role to enum for type safety |
 | 008 | `008_add_expected_return_date.py` | Add expected return date fields |
+| 009 | `009_add_performance_indexes.py` | Add indexes for query performance |
 
 ### Running Migrations
 
@@ -278,17 +284,24 @@ All tables have the following indexes:
 3. **Business Logic Indexes**: 
    - `users.email` (unique) - OAuth lookup
    - `users.oauth_id` - OAuth provider lookup
+   - `users.role` - Role-based queries
    - `kits.code` (unique) - QR code scanning
    - `custody_events.kit_id` - Kit history queries
+   - `custody_events.event_type` - Filter by event type
+   - `custody_events.(kit_id, created_at)` - Composite for timeline queries
    - `approval_requests.kit_id` - Pending requests lookup
+   - `approval_requests.status` - Filter by approval status
    - `maintenance_events.kit_id` - Maintenance history queries
+   - `maintenance_events.is_open` - Find active maintenance
 
 ### Query Optimization Tips
 
-1. **Kit History**: Index on `custody_events.kit_id` enables fast timeline queries
-2. **User Lookup**: Compound index on `oauth_provider` + `oauth_id` would speed up auth
-3. **Pending Approvals**: Consider index on `approval_requests.status` for filtering
+1. **Kit History**: Composite index on `(kit_id, created_at)` enables fast timeline queries
+2. **User Lookup**: Index on `oauth_id` speeds up authentication
+3. **Pending Approvals**: Index on `approval_requests.status` for filtering
 4. **Open Maintenance**: Index on `maintenance_events.is_open` for active maintenance queries
+5. **Event Filtering**: Index on `custody_events.event_type` for event-specific queries
+6. **Role Queries**: Index on `users.role` for role-based filtering
 
 ---
 
