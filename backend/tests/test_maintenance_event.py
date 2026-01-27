@@ -35,7 +35,7 @@ def test_create_maintenance_event(db_session):
         kit_id=kit.id,
         performed_by_id=user.id,
         performed_by_name=user.name,
-        round_count=100,
+        round_count=1000,
         parts_replaced="Magazine spring, firing pin",
         notes="Routine inspection after 1000 rounds",
         next_maintenance_date=date(2026, 3, 1)
@@ -49,7 +49,7 @@ def test_create_maintenance_event(db_session):
     assert maintenance_event.kit_id == kit.id
     assert maintenance_event.performed_by_id == user.id
     assert maintenance_event.performed_by_name == "Test Armorer"
-    assert maintenance_event.round_count == 100
+    assert maintenance_event.round_count == 1000
     assert maintenance_event.parts_replaced == "Magazine spring, firing pin"
     assert maintenance_event.notes == "Routine inspection after 1000 rounds"
     assert maintenance_event.next_maintenance_date == date(2026, 3, 1)
