@@ -1,5 +1,7 @@
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
+from app.core.encryption import encrypt_field, decrypt_field
 import enum
 
 class KitStatus(str, enum.Enum):
@@ -19,4 +21,18 @@ class Kit(BaseModel):
     status = Column(SQLEnum(KitStatus), default=KitStatus.available, nullable=False)
     current_custodian_id = Column(Integer, nullable=True)  # Will be FK to User when User model exists
     current_custodian_name = Column(String(200), nullable=True)  # Temporary field until User model exists
+    
+    # Encrypted serial number field (AUDIT-003)
+    # Stored encrypted in database, transparent to application
+    _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
+    
+    @hybrid_property
+    def serial_number(self):
+        """Decrypt serial number when accessed."""
+        return decrypt_field(self._serial_number_encrypted)
+    
+    @serial_number.setter
+    def serial_number(self, value):
+        """Encrypt serial number when set."""
+        self._serial_number_encrypted = encrypt_field(value)
 
