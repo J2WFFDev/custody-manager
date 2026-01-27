@@ -1,9 +1,10 @@
 """
-Tests for the warnings service - soft warnings for custody events
+Tests for the warnings service - soft warnings for custody and maintenance events
 
-Implements tests for CUSTODY-008 and CUSTODY-014:
+Implements tests for CUSTODY-008, CUSTODY-014, and MAINT-002:
 - Test overdue return warnings
 - Test extended custody warnings
+- Test overdue maintenance warnings
 - Verify warnings are non-blocking
 """
 
@@ -15,7 +16,7 @@ from app.models.kit import Kit, KitStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.models.user import User, UserRole
 from app.services.warnings_service import calculate_kit_warnings, get_all_kits_with_warnings
-from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS
+from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS, OVERDUE_MAINTENANCE_WARNING_DAYS
 
 
 def test_no_warnings_for_available_kit(db_session: Session):
@@ -281,3 +282,118 @@ def test_future_expected_return_no_warning(db_session: Session):
     # Should not have overdue warning (future date)
     assert warnings["overdue_return"] is False
     assert warnings["expected_return_date"] == future_date
+
+
+def test_overdue_maintenance_warning(db_session: Session):
+    """Test that overdue maintenance triggers warnings"""
+    # Create a kit with overdue maintenance
+    past_date = date.today() - timedelta(days=5)
+    kit = Kit(
+        code="TEST-MAINT-001",
+        name="Test Kit Overdue Maintenance",
+        status=KitStatus.available,
+        next_maintenance_date=past_date
+    )
+    db_session.add(kit)
+    db_session.commit()
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db_session)
+    
+    # Should have overdue maintenance warning
+    assert warnings["has_warning"] is True
+    assert warnings["overdue_maintenance"] is True
+    assert warnings["days_maintenance_overdue"] == 5
+    assert warnings["next_maintenance_date"] == past_date
+
+
+def test_no_maintenance_warning_for_future_date(db_session: Session):
+    """Test that future maintenance dates don't trigger warnings"""
+    # Create a kit with future maintenance date
+    future_date = date.today() + timedelta(days=30)
+    kit = Kit(
+        code="TEST-MAINT-002",
+        name="Test Kit Future Maintenance",
+        status=KitStatus.available,
+        next_maintenance_date=future_date
+    )
+    db_session.add(kit)
+    db_session.commit()
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db_session)
+    
+    # Should not have maintenance warning
+    assert warnings["has_warning"] is False
+    assert warnings["overdue_maintenance"] is False
+    assert warnings["next_maintenance_date"] == future_date
+
+
+def test_no_maintenance_warning_when_in_maintenance(db_session: Session):
+    """Test that kits in maintenance don't show overdue maintenance warnings"""
+    # Create a kit in maintenance with overdue next_maintenance_date
+    past_date = date.today() - timedelta(days=10)
+    kit = Kit(
+        code="TEST-MAINT-003",
+        name="Test Kit In Maintenance",
+        status=KitStatus.in_maintenance,
+        next_maintenance_date=past_date
+    )
+    db_session.add(kit)
+    db_session.commit()
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db_session)
+    
+    # Should not have maintenance warning (kit is already in maintenance)
+    assert warnings["has_warning"] is False
+    assert warnings["overdue_maintenance"] is False
+
+
+def test_maintenance_warning_with_checked_out_kit(db_session: Session):
+    """Test that checked-out kits can also have maintenance warnings"""
+    # Create a user
+    user = User(
+        email="test@example.com",
+        name="Test User",
+        oauth_provider="google",
+        oauth_id="test-maint-123",
+        role=UserRole.coach
+    )
+    db_session.add(user)
+    db_session.commit()
+    
+    # Create a checked-out kit with overdue maintenance
+    past_date = date.today() - timedelta(days=3)
+    kit = Kit(
+        code="TEST-MAINT-004",
+        name="Test Kit Checked Out + Overdue Maint",
+        status=KitStatus.checked_out,
+        current_custodian_name="John Doe",
+        next_maintenance_date=past_date
+    )
+    db_session.add(kit)
+    db_session.commit()
+    
+    # Create a recent checkout event
+    checkout_event = CustodyEvent(
+        event_type=CustodyEventType.checkout_onprem,
+        kit_id=kit.id,
+        initiated_by_id=user.id,
+        initiated_by_name=user.name,
+        custodian_name="John Doe",
+        location_type="on_premises"
+    )
+    db_session.add(checkout_event)
+    db_session.commit()
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db_session)
+    
+    # Should have maintenance warning but not custody warnings
+    assert warnings["has_warning"] is True
+    assert warnings["overdue_maintenance"] is True
+    assert warnings["days_maintenance_overdue"] == 3
+    # Should not have custody warnings (recent checkout, no expected return)
+    assert warnings["overdue_return"] is False
+    assert warnings["extended_custody"] is False

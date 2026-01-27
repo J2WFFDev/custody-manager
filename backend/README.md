@@ -4,11 +4,19 @@ FastAPI backend for the WilcoSS Custody & Equipment Manager.
 
 ## Tech Stack
 - **FastAPI** - Modern Python web framework
-- **SQLAlchemy** - ORM for database operations
+- **SQLAlchemy 2.0** - ORM for database operations
 - **PostgreSQL** - Primary database
 - **Alembic** - Database migrations
 - **Pydantic** - Data validation
 - **Authlib** - OAuth 2.0 authentication
+
+## Documentation
+
+📚 **Comprehensive Guides:**
+- **[Backend Setup Guide](docs/BACKEND_SETUP.md)** - Complete setup and development instructions
+- **[SQLAlchemy Configuration](docs/SQLALCHEMY_CONFIG.md)** - ORM configuration and usage patterns
+- **[OAuth Setup Guide](docs/OAUTH_SETUP.md)** - Authentication configuration
+- **[User Model Documentation](docs/USER_MODEL.md)** - User and role management
 
 ## Prerequisites
 - Python 3.11+
@@ -92,9 +100,31 @@ backend/
 └── requirements.txt     # Dependencies
 ```
 
+## Database Schema
+
+The application uses PostgreSQL with a comprehensive schema for custody tracking, user management, and audit trails. 
+
+**Documentation**:
+- **[Database Schema Overview](docs/SCHEMA.md)** - Complete schema documentation with all tables, relationships, and indexes
+- **[User Model](docs/USER_MODEL.md)** - Detailed user model documentation
+- **[OAuth Setup](docs/OAUTH_SETUP.md)** - Authentication configuration
+
+**Core Tables**:
+- `users` - OAuth authentication and role-based access control
+- `kits` - Equipment and firearm kits with QR codes
+- `custody_events` - Immutable audit trail of custody changes
+- `approval_requests` - Multi-role approval workflow for off-site custody
+- `maintenance_events` - Equipment maintenance tracking
+
 ## Database Migrations
 
 ```bash
+# View current migration status
+alembic current
+
+# View migration history
+alembic history
+
 # Create new migration
 alembic revision --autogenerate -m "description"
 
@@ -105,12 +135,32 @@ alembic upgrade head
 alembic downgrade -1
 ```
 
+See [SCHEMA.md](docs/SCHEMA.md) for detailed migration documentation.
+
 ## Testing
 
 ```bash
+# Run all tests
 pytest
+
+# Run with coverage
+pytest --cov=app
+
+# Run specific test file
+pytest tests/test_auth_endpoints.py
 ```
+
+For more details, see [Backend Setup Guide](docs/BACKEND_SETUP.md#testing).
 
 ## Deployment
 
-See Railway deployment configuration in Issue #16.
+The backend is configured for deployment on Railway. See:
+- [Railway Deployment Guide](RAILWAY_DEPLOYMENT.md)
+- [Backend Setup Guide](docs/BACKEND_SETUP.md#deployment)
+
+## Additional Resources
+
+- [FastAPI Documentation](https://fastapi.tiangolo.com/)
+- [SQLAlchemy 2.0 Documentation](https://docs.sqlalchemy.org/en/20/)
+- [Project Architecture](../ARCHITECTURE.md)
+- [User Stories](../USER_STORIES.md)

@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 from typing import List
 import secrets
 import os
+import base64
 
 class Settings(BaseSettings):
     # Application
@@ -21,6 +22,8 @@ class Settings(BaseSettings):
     
     # Field-level encryption (AUDIT-003)
     ENCRYPTION_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not provided
+    # Field Encryption - for sensitive database fields (AUDIT-003)
+    ENCRYPTION_KEY: str = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()  # Auto-generate if not provided
     
     # CORS - Allow production frontend
     BACKEND_CORS_ORIGINS: List[str] = [

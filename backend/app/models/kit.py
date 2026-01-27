@@ -1,6 +1,9 @@
+from sqlalchemy import Column, String, Integer, Enum as SQLEnum, Date
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum
+from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
 from app.core.encryption import EncryptedString
+from app.core.encryption import encrypt_field, decrypt_field
 import enum
 
 class KitStatus(str, enum.Enum):
@@ -24,4 +27,34 @@ class Kit(BaseModel):
     # Encrypted serial number field (AUDIT-003)
     # Encrypted fields need more space due to encryption overhead (~200 chars for 50 char input)
     serial_number = Column(EncryptedString(500), nullable=True)
+    # Next maintenance due date (set when maintenance is completed)
+    next_maintenance_date = Column(Date, nullable=True)
+    
+    # Encrypted serial number field (AUDIT-003)
+    # Stored encrypted in database, transparent to application
+    _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
+    
+    def __init__(self, **kwargs):
+        # Extract serial_number from kwargs if present  
+        # Track if it was explicitly provided (could be None or empty string)
+        has_serial_number = 'serial_number' in kwargs
+        serial_number = kwargs.pop('serial_number', None)
+        
+        # Call parent init with remaining kwargs
+        super().__init__(**kwargs)
+        
+        # Set serial_number using the property setter (which encrypts it)
+        # Only set if it was explicitly provided in kwargs
+        if has_serial_number:
+            self.serial_number = serial_number
+    
+    @hybrid_property
+    def serial_number(self):
+        """Decrypt serial number when accessed."""
+        return decrypt_field(self._serial_number_encrypted)
+    
+    @serial_number.setter
+    def serial_number(self, value):
+        """Encrypt serial number when set."""
+        self._serial_number_encrypted = encrypt_field(value)
 
