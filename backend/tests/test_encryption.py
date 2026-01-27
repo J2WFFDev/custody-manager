@@ -241,8 +241,8 @@ def test_empty_string_encryption(db):
     
     # Empty string should be encrypted and decrypted correctly
     assert kit.serial_number == ""
-Tests for field-level encryption functionality (AUDIT-003)
-"""
+
+
 import pytest
 from app.core.encryption import FieldEncryption, encrypt_field, decrypt_field
 
