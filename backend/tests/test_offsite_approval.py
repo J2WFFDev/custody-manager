@@ -2,12 +2,14 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime, timezone
 from app.database import Base, get_db
 from app.main import app
 from app.models.kit import Kit, KitStatus
 from app.models.user import User
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
+from app.constants import ATTESTATION_TEXT
 
 # Use in-memory SQLite for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_offsite_approval.db"
@@ -141,7 +143,9 @@ def test_offsite_request_success_verified_parent(client, sample_kit, verified_pa
         json={
             "kit_code": "TEST-OFFSITE-001",
             "custodian_name": "Child Athlete",
-            "notes": "For weekend practice"
+            "notes": "For weekend practice",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
         }
     )
     
@@ -171,7 +175,9 @@ def test_offsite_request_denied_unverified_parent(client, sample_kit, unverified
         "/api/v1/custody/offsite-request",
         json={
             "kit_code": "TEST-OFFSITE-001",
-            "custodian_name": "Child Athlete"
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Unverified Parent",
+            "attestation_accepted": True
         }
     )
     
@@ -187,7 +193,9 @@ def test_offsite_request_kit_not_found(client, verified_parent):
         "/api/v1/custody/offsite-request",
         json={
             "kit_code": "NONEXISTENT",
-            "custodian_name": "Child Athlete"
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
         }
     )
     
@@ -210,7 +218,9 @@ def test_offsite_request_kit_not_available(client, sample_kit, verified_parent):
         "/api/v1/custody/offsite-request",
         json={
             "kit_code": "TEST-OFFSITE-001",
-            "custodian_name": "Child Athlete"
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
         }
     )
     
@@ -229,7 +239,11 @@ def test_approve_offsite_request_by_armorer(client, sample_kit, verified_parent,
         requester_name=verified_parent.name,
         custodian_name="Child Athlete",
         notes="For weekend practice",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        # Attestation fields
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval_request)
     db.commit()
@@ -286,7 +300,10 @@ def test_approve_offsite_request_by_coach(client, sample_kit, verified_parent, c
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child Athlete",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval_request)
     db.commit()
@@ -321,7 +338,10 @@ def test_deny_offsite_request(client, sample_kit, verified_parent, armorer):
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child Athlete",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval_request)
     db.commit()
@@ -364,7 +384,10 @@ def test_deny_requires_reason(client, sample_kit, verified_parent, armorer):
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child Athlete",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval_request)
     db.commit()
@@ -395,7 +418,10 @@ def test_approve_unauthorized_user(client, sample_kit, verified_parent):
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child Athlete",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval_request)
     db.commit()
@@ -430,7 +456,10 @@ def test_list_pending_approvals(client, sample_kit, verified_parent, armorer):
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child 1",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval1)
     
@@ -449,7 +478,10 @@ def test_list_pending_approvals(client, sample_kit, verified_parent, armorer):
         requester_id=verified_parent.id,
         requester_name=verified_parent.name,
         custodian_name="Child 2",
-        status=ApprovalStatus.pending
+        status=ApprovalStatus.pending,
+        attestation_text=ATTESTATION_TEXT,
+        attestation_signature="Test Parent",
+        attestation_timestamp=datetime.now(timezone.utc)
     )
     db.add(approval2)
     
@@ -494,3 +526,163 @@ def test_list_pending_approvals_unauthorized(client, verified_parent):
     
     assert response.status_code == 403
     assert "armorer or coach" in response.json()["detail"].lower()
+
+
+# Tests for attestation functionality (CUSTODY-012)
+def test_get_attestation_text(client):
+    """Test retrieving attestation text"""
+    response = client.get("/api/v1/custody/attestation-text")
+    
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert "attestation_text" in data
+    assert "RESPONSIBILITY ATTESTATION" in data["attestation_text"]
+    assert "CUSTODY RESPONSIBILITY" in data["attestation_text"]
+    assert "SAFE STORAGE" in data["attestation_text"]
+    assert "LEGAL COMPLIANCE" in data["attestation_text"]
+
+
+def test_offsite_request_with_attestation(client, sample_kit, verified_parent):
+    """Test off-site checkout request with attestation"""
+    from app.api.v1.endpoints.custody import get_current_user
+    app.dependency_overrides[get_current_user] = lambda: verified_parent
+    
+    response = client.post(
+        "/api/v1/custody/offsite-request",
+        json={
+            "kit_code": sample_kit.code,
+            "custodian_name": "Child Athlete",
+            "notes": "Competition this weekend",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
+        }
+    )
+    
+    assert response.status_code == 201
+    data = response.json()
+    
+    assert "approval_request" in data
+    approval = data["approval_request"]
+    
+    # Verify attestation data is stored
+    assert approval["attestation_text"] is not None
+    assert "RESPONSIBILITY ATTESTATION" in approval["attestation_text"]
+    assert approval["attestation_signature"] == "Test Parent"
+    assert approval["attestation_timestamp"] is not None
+    assert approval["status"] == "pending"
+
+
+def test_offsite_request_without_attestation_signature(client, sample_kit, verified_parent):
+    """Test that off-site checkout request fails without signature"""
+    from app.api.v1.endpoints.custody import get_current_user
+    app.dependency_overrides[get_current_user] = lambda: verified_parent
+    
+    response = client.post(
+        "/api/v1/custody/offsite-request",
+        json={
+            "kit_code": sample_kit.code,
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "",
+            "attestation_accepted": True
+        }
+    )
+    
+    assert response.status_code == 400
+    assert "signature" in response.json()["detail"].lower()
+
+
+def test_offsite_request_without_attestation_acceptance(client, sample_kit, verified_parent):
+    """Test that off-site checkout request fails without acceptance"""
+    from app.api.v1.endpoints.custody import get_current_user
+    app.dependency_overrides[get_current_user] = lambda: verified_parent
+    
+    response = client.post(
+        "/api/v1/custody/offsite-request",
+        json={
+            "kit_code": sample_kit.code,
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": False
+        }
+    )
+    
+    assert response.status_code == 400
+    assert "accept the responsibility attestation" in response.json()["detail"].lower()
+
+
+def test_attestation_stored_in_approval_request(client, sample_kit, verified_parent, armorer):
+    """Test that attestation data is preserved through approval workflow"""
+    from app.api.v1.endpoints.custody import get_current_user
+    
+    # Step 1: Parent submits request with attestation
+    app.dependency_overrides[get_current_user] = lambda: verified_parent
+    
+    response = client.post(
+        "/api/v1/custody/offsite-request",
+        json={
+            "kit_code": sample_kit.code,
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
+        }
+    )
+    
+    assert response.status_code == 201
+    approval_request_id = response.json()["approval_request"]["id"]
+    original_signature = response.json()["approval_request"]["attestation_signature"]
+    original_timestamp = response.json()["approval_request"]["attestation_timestamp"]
+    
+    # Step 2: Armorer approves the request
+    app.dependency_overrides[get_current_user] = lambda: armorer
+    
+    response = client.post(
+        "/api/v1/custody/offsite-approve",
+        json={
+            "approval_request_id": approval_request_id,
+            "approve": True
+        }
+    )
+    
+    assert response.status_code == 200
+    data = response.json()
+    
+    # Verify attestation data is preserved
+    assert data["approval_request"]["attestation_signature"] == original_signature
+    assert data["approval_request"]["attestation_timestamp"] == original_timestamp
+    assert data["approval_request"]["attestation_text"] is not None
+
+
+def test_attestation_visible_to_approvers(client, sample_kit, verified_parent, armorer):
+    """Test that approvers can view attestation data when reviewing requests"""
+    from app.api.v1.endpoints.custody import get_current_user
+    
+    # Parent submits request with attestation
+    app.dependency_overrides[get_current_user] = lambda: verified_parent
+    
+    client.post(
+        "/api/v1/custody/offsite-request",
+        json={
+            "kit_code": sample_kit.code,
+            "custodian_name": "Child Athlete",
+            "attestation_signature": "Test Parent",
+            "attestation_accepted": True
+        }
+    )
+    
+    # Armorer lists pending approvals
+    app.dependency_overrides[get_current_user] = lambda: armorer
+    
+    response = client.get("/api/v1/custody/pending-approvals")
+    
+    assert response.status_code == 200
+    data = response.json()
+    
+    assert len(data) == 1
+    approval = data[0]
+    
+    # Verify attestation data is visible to approver
+    assert approval["attestation_signature"] == "Test Parent"
+    assert approval["attestation_text"] is not None
+    assert approval["attestation_timestamp"] is not None
+    assert "RESPONSIBILITY ATTESTATION" in approval["attestation_text"]

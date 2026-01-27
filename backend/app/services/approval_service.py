@@ -5,7 +5,7 @@ Approval service - handles off-site checkout approval logic
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, Request
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
@@ -106,7 +106,7 @@ def create_offsite_checkout_request(
         # Attestation fields (CUSTODY-012)
         attestation_text=ATTESTATION_TEXT,
         attestation_signature=attestation_signature.strip(),
-        attestation_timestamp=datetime.utcnow(),
+        attestation_timestamp=datetime.now(timezone.utc),
         attestation_ip_address=request_ip
     )
     
