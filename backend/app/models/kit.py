@@ -27,14 +27,17 @@ class Kit(BaseModel):
     _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
     
     def __init__(self, **kwargs):
-        # Extract serial_number from kwargs if present
+        # Extract serial_number from kwargs if present  
+        # Track if it was explicitly provided (could be None or empty string)
+        has_serial_number = 'serial_number' in kwargs
         serial_number = kwargs.pop('serial_number', None)
         
         # Call parent init with remaining kwargs
         super().__init__(**kwargs)
         
         # Set serial_number using the property setter (which encrypts it)
-        if serial_number is not None or 'serial_number' in kwargs or serial_number == '':
+        # Only set if it was explicitly provided in kwargs
+        if has_serial_number:
             self.serial_number = serial_number
     
     @hybrid_property
