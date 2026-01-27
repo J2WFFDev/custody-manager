@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, date
 from app.models.custody_event import CustodyEventType
 
 class CustodyCheckoutRequest(BaseModel):
@@ -9,6 +9,7 @@ class CustodyCheckoutRequest(BaseModel):
     custodian_name: str = Field(..., description="Name of person receiving custody")
     custodian_id: Optional[int] = Field(None, description="User ID if custodian is in system")
     notes: Optional[str] = Field(None, description="Optional notes")
+    expected_return_date: Optional[date] = Field(None, description="Expected return date for soft warnings")
 
 class CustodyEventResponse(BaseModel):
     """Response schema for custody events"""
@@ -21,6 +22,7 @@ class CustodyEventResponse(BaseModel):
     custodian_name: str
     notes: Optional[str]
     location_type: str
+    expected_return_date: Optional[date]
     created_at: datetime
     
     class Config:
@@ -42,3 +44,16 @@ class EventTimelineResponse(BaseModel):
     kit_code: Optional[str] = None
     user_id: Optional[int] = None
     user_name: Optional[str] = None
+
+class LostFoundRequest(BaseModel):
+    """Request schema for reporting a kit as lost or found"""
+    kit_code: str = Field(..., description="Kit code (scanned from QR or manually entered)")
+    notes: Optional[str] = Field(None, description="Optional notes about circumstances")
+
+
+class LostFoundResponse(BaseModel):
+    """Response schema for lost/found operations"""
+    message: str
+    event: CustodyEventResponse
+    kit_name: str
+    kit_code: str
