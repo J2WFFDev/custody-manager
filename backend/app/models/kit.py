@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Enum as SQLEnum
+from sqlalchemy import Column, String, Integer, Enum as SQLEnum, Date
 from app.models.base import BaseModel
 import enum
 
@@ -19,4 +19,6 @@ class Kit(BaseModel):
     status = Column(SQLEnum(KitStatus), default=KitStatus.available, nullable=False)
     current_custodian_id = Column(Integer, nullable=True)  # Will be FK to User when User model exists
     current_custodian_name = Column(String(200), nullable=True)  # Temporary field until User model exists
+    # Next maintenance due date (set when maintenance is completed)
+    next_maintenance_date = Column(Date, nullable=True)
 

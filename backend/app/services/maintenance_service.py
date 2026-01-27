@@ -5,6 +5,7 @@ Maintenance service - handles maintenance event logic and validation
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from typing import Optional
+from datetime import date, timedelta
 
 from app.models.maintenance_event import MaintenanceEvent
 from app.models.kit import Kit, KitStatus
@@ -87,13 +88,15 @@ def close_maintenance(
     closed_by_user: User,
     notes: Optional[str] = None,
     parts_replaced: Optional[str] = None,
-    round_count: Optional[int] = None
+    round_count: Optional[int] = None,
+    next_maintenance_days: Optional[int] = None
 ) -> tuple[MaintenanceEvent, Kit]:
     """
     Close maintenance on a kit, making it available again.
     
-    Implements MAINT-001:
+    Implements MAINT-001 and MAINT-002:
     - As an Armorer, I want to log maintenance events (open/close, parts replaced, round count)
+    - As an Armorer, I want to set next maintenance due date when closing maintenance
     
     Args:
         db: Database session
@@ -102,6 +105,7 @@ def close_maintenance(
         notes: Optional notes about the maintenance completion
         parts_replaced: Optional description of parts that were replaced
         round_count: Optional round count at maintenance completion
+        next_maintenance_days: Optional number of days until next maintenance is due
         
     Returns:
         Tuple of (maintenance_event, kit)
@@ -163,6 +167,12 @@ def close_maintenance(
     
     if round_count is not None:
         open_event.round_count = round_count
+    
+    # Set next maintenance date if provided
+    if next_maintenance_days is not None:
+        next_date = date.today() + timedelta(days=next_maintenance_days)
+        open_event.next_maintenance_date = next_date
+        kit.next_maintenance_date = next_date
     
     # Update kit status to available
     kit.status = KitStatus.available

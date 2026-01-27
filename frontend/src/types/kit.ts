@@ -19,13 +19,16 @@ export interface Kit {
   current_custodian_name?: string;
   created_at: string;
   updated_at: string;
-  // Warning information (CUSTODY-008, CUSTODY-014)
+  next_maintenance_date?: string;
+  // Warning information (CUSTODY-008, CUSTODY-014, MAINT-002)
   has_warning?: boolean;
   overdue_return?: boolean;
   extended_custody?: boolean;
   days_overdue?: number;
   days_checked_out?: number;
   expected_return_date?: string;
+  overdue_maintenance?: boolean;
+  days_maintenance_overdue?: number;
 }
 
 export interface KitCreate {
