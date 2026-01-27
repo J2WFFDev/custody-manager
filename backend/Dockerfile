@@ -23,4 +23,4 @@ COPY . .
 EXPOSE 8000
 
 # Start command - use shell form for variable expansion
-CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
+CMD alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
