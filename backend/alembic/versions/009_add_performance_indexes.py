@@ -1,7 +1,7 @@
 """add performance indexes
 
 Revision ID: 009_add_performance_indexes
-Revises: 008_add_encrypted_serial_number
+Revises: 008_encrypted_serial
 Create Date: 2026-01-27
 
 Adds indexes for common query patterns to improve performance:
@@ -16,7 +16,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = '009_add_performance_indexes'
-down_revision = '008_add_encrypted_serial_number'
+down_revision = '008_encrypted_serial'
 branch_labels = None
 depends_on = None
 
