@@ -17,6 +17,7 @@ const OffSiteCheckoutModal: React.FC<OffSiteCheckoutModalProps> = ({
   const [kitCode, setKitCode] = useState(initialKitCode || '');
   const [custodianName, setCustodianName] = useState('');
   const [notes, setNotes] = useState('');
+  const [expectedReturnDate, setExpectedReturnDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [useScanner, setUseScanner] = useState(false);
@@ -76,6 +77,7 @@ const OffSiteCheckoutModal: React.FC<OffSiteCheckoutModalProps> = ({
         kit_code: kitCode.trim(),
         custodian_name: custodianName.trim(),
         notes: notes.trim() || undefined,
+        expected_return_date: expectedReturnDate || undefined,
         attestation_signature: attestationSignature.trim(),
         attestation_accepted: attestationAccepted
       });
@@ -203,7 +205,7 @@ const OffSiteCheckoutModal: React.FC<OffSiteCheckoutModalProps> = ({
             </div>
 
             {/* Notes Input */}
-            <div className="mb-6">
+            <div className="mb-4">
               <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
                 Notes (Optional)
               </label>
@@ -216,6 +218,25 @@ const OffSiteCheckoutModal: React.FC<OffSiteCheckoutModalProps> = ({
                 rows={3}
                 disabled={loading}
               />
+            </div>
+
+            {/* Expected Return Date Input */}
+            <div className="mb-6">
+              <label htmlFor="expectedReturnDate" className="block text-sm font-medium text-gray-700 mb-2">
+                Expected Return Date (Optional)
+              </label>
+              <input
+                type="date"
+                id="expectedReturnDate"
+                value={expectedReturnDate}
+                onChange={(e) => setExpectedReturnDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loading}
+                min={new Date().toISOString().split('T')[0]}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Recommended: Set an expected return date to receive reminders
+              </p>
             </div>
 
             {/* Attestation Section (CUSTODY-012) */}
