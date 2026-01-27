@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
+    # Field-level encryption (AUDIT-003)
+    ENCRYPTION_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not provided
     # Field Encryption - for sensitive database fields (AUDIT-003)
     ENCRYPTION_KEY: str = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()  # Auto-generate if not provided
     

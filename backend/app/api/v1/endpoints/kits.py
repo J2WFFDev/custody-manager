@@ -28,6 +28,7 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
         code=kit_data.code,
         name=kit_data.name,
         description=kit_data.description,
+        serial_number=kit_data.serial_number  # Automatically encrypted by EncryptedString type
         serial_number=kit_data.serial_number  # Will be encrypted by hybrid property
     )
     
@@ -65,6 +66,7 @@ def list_kits(
             "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
             "current_custodian_id": kit.current_custodian_id,
             "current_custodian_name": kit.current_custodian_name,
+            "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
             "next_maintenance_date": kit.next_maintenance_date,
             "created_at": kit.created_at,
             "updated_at": kit.updated_at
@@ -106,6 +108,7 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
         "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
         "next_maintenance_date": kit.next_maintenance_date,
         "created_at": kit.created_at,
         "updated_at": kit.updated_at
@@ -147,6 +150,7 @@ def get_kit_by_code(code: str, db: Session = Depends(get_db)):
         "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
         "next_maintenance_date": kit.next_maintenance_date,
         "created_at": kit.created_at,
         "updated_at": kit.updated_at

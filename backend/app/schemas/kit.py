@@ -11,6 +11,7 @@ class KitBase(BaseModel):
 
 class KitCreate(KitBase):
     """Schema for creating a new kit"""
+    serial_number: Optional[str] = Field(None, description="Serial number (encrypted in database)")
     serial_number: Optional[str] = Field(None, description="Equipment serial number (encrypted in database)")
 
 class KitUpdate(BaseModel):
@@ -26,6 +27,7 @@ class KitResponse(KitBase):
     serial_number: Optional[str] = Field(None, description="Equipment serial number (decrypted)")
     current_custodian_id: Optional[int] = None
     current_custodian_name: Optional[str] = None
+    serial_number: Optional[str] = Field(None, description="Serial number (encrypted in database)")
     created_at: datetime
     updated_at: datetime
     next_maintenance_date: Optional[date] = Field(default=None, description="Next scheduled maintenance date")

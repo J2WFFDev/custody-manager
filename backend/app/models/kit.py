@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, Integer, Enum as SQLEnum, Date
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
+from app.core.encryption import EncryptedString
 from app.core.encryption import encrypt_field, decrypt_field
 import enum
 
@@ -22,6 +23,10 @@ class Kit(BaseModel):
     status = Column(SQLEnum(KitStatus), default=KitStatus.available, nullable=False)
     current_custodian_id = Column(Integer, nullable=True)  # Will be FK to User when User model exists
     current_custodian_name = Column(String(200), nullable=True)  # Temporary field until User model exists
+    
+    # Encrypted serial number field (AUDIT-003)
+    # Encrypted fields need more space due to encryption overhead (~200 chars for 50 char input)
+    serial_number = Column(EncryptedString(500), nullable=True)
     # Next maintenance due date (set when maintenance is completed)
     next_maintenance_date = Column(Date, nullable=True)
     
