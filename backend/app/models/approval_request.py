@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Boolean
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Boolean, DateTime, Text
 from app.models.base import BaseModel
 import enum
 
@@ -33,3 +33,9 @@ class ApprovalRequest(BaseModel):
     # Request details
     notes = Column(String(1000), nullable=True)
     denial_reason = Column(String(500), nullable=True)
+    
+    # Responsibility attestation (CUSTODY-012)
+    attestation_text = Column(Text, nullable=True)  # The legal text presented to user
+    attestation_signature = Column(String(200), nullable=True)  # Digital signature/acknowledgment
+    attestation_timestamp = Column(DateTime, nullable=True)  # When user acknowledged
+    attestation_ip_address = Column(String(45), nullable=True)  # IP address for audit trail

@@ -8,7 +8,8 @@ import type {
   OffSiteCheckoutResponse,
   ApprovalDecisionRequest,
   ApprovalDecisionResponse,
-  ApprovalRequest
+  ApprovalRequest,
+  AttestationTextResponse
 } from '../types/custody';
 
 export const custodyService = {
@@ -38,5 +39,12 @@ export const custodyService = {
    */
   async getPendingApprovals(): Promise<ApprovalRequest[]> {
     return api.get<ApprovalRequest[]>('/custody/pending-approvals');
+  },
+
+  /**
+   * Get responsibility attestation text (CUSTODY-012)
+   */
+  async getAttestationText(): Promise<AttestationTextResponse> {
+    return api.get<AttestationTextResponse>('/custody/attestation-text');
   },
 };
