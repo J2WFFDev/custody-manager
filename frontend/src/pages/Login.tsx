@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  // Check for error in URL params (from OAuth callback)
+  const [error] = useState<string | null>(searchParams.get('error'));
 
   // Redirect if already authenticated
   useEffect(() => {

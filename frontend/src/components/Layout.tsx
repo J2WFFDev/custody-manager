@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import UserProfile from './UserProfile';
-import { authService, User } from '../services/authService';
+import { authService } from '../services/authService';
+import type { User } from '../services/authService';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -95,7 +96,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {children}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-600">Loading...</div>
+          </div>
+        ) : (
+          children
+        )}
       </main>
 
       {/* Footer */}

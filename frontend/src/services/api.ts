@@ -18,9 +18,9 @@ async function fetchApi<T>(
   // Get access token from auth service
   const accessToken = authService.getAccessToken();
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options?.headers,
+    ...(options?.headers as Record<string, string>),
   };
   
   // Add Authorization header if token exists
