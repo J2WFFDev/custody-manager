@@ -32,3 +32,19 @@ class CustodyCheckoutResponse(BaseModel):
     event: CustodyEventResponse
     kit_name: str
     kit_code: str
+
+class CustodyTransferRequest(BaseModel):
+    """Request schema for transferring custody of a kit"""
+    kit_code: str = Field(..., description="Kit code (scanned from QR or manually entered)")
+    new_custodian_name: str = Field(..., description="Name of person receiving custody")
+    new_custodian_id: Optional[int] = Field(None, description="User ID if new custodian is in system")
+    notes: Optional[str] = Field(None, description="Optional notes about the transfer")
+
+class CustodyTransferResponse(BaseModel):
+    """Response schema for successful custody transfer"""
+    message: str
+    event: CustodyEventResponse
+    kit_name: str
+    kit_code: str
+    previous_custodian: str
+    new_custodian: str
