@@ -110,6 +110,9 @@ const Kits: React.FC = () => {
     setSuccessMessage(response.message);
     
     // Reload kits to update custodian
+    await loadKits();
+  };
+
   const handleOpenMaintenance = (kit: Kit) => {
     setSelectedKit(kit);
     setMaintenanceMode('open');
@@ -124,6 +127,13 @@ const Kits: React.FC = () => {
 
   const handleMaintenanceSuccess = async (response: MaintenanceOpenResponse | MaintenanceCloseResponse) => {
     setShowMaintenanceModal(false);
+    setSelectedKit(null);
+    setSuccessMessage(response.message);
+    
+    // Reload kits to update maintenance status
+    await loadKits();
+  };
+
   const handleReportLost = (kit: Kit) => {
     setSelectedKit(kit);
     setLostFoundMode('lost');
@@ -439,6 +449,9 @@ const Kits: React.FC = () => {
             setSelectedKit(null);
           }}
           onSuccess={handleTransferSuccess}
+        />
+      )}
+
       {/* Maintenance Modal */}
       {showMaintenanceModal && selectedKit && (
         <MaintenanceModal
@@ -451,6 +464,9 @@ const Kits: React.FC = () => {
             setSelectedKit(null);
           }}
           onSuccess={handleMaintenanceSuccess}
+        />
+      )}
+
       {/* Lost/Found Modal */}
       {showLostFoundModal && selectedKit && (
         <LostFoundModal
