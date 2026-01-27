@@ -100,15 +100,6 @@ class EncryptedString(TypeDecorator):
         
         # Return as string
         return decrypted_bytes.decode()
-Field-level encryption utility for sensitive database fields.
-
-This module provides encryption/decryption capabilities for sensitive data
-such as serial numbers, implementing AUDIT-003 security requirements.
-"""
-from cryptography.fernet import Fernet
-from app.config import settings
-import base64
-from typing import Optional
 
 
 class FieldEncryption:

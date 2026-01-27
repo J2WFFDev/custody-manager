@@ -9,7 +9,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.database import Base
 from app.models.kit import Kit, KitStatus
-from app.core.encryption import EncryptedString, get_fernet_key
+from app.core.encryption import EncryptedString, get_fernet_key, FieldEncryption, encrypt_field, decrypt_field
 from cryptography.fernet import Fernet
 
 
@@ -241,10 +241,6 @@ def test_empty_string_encryption(db):
     
     # Empty string should be encrypted and decrypted correctly
     assert kit.serial_number == ""
-Tests for field-level encryption functionality (AUDIT-003)
-"""
-import pytest
-from app.core.encryption import FieldEncryption, encrypt_field, decrypt_field
 
 
 class TestFieldEncryption:
