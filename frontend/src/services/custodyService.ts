@@ -9,7 +9,9 @@ import type {
   ApprovalDecisionRequest,
   ApprovalDecisionResponse,
   ApprovalRequest,
-  AttestationTextResponse
+  AttestationTextResponse,
+  LostFoundRequest,
+  LostFoundResponse
 } from '../types/custody';
 
 export const custodyService = {
@@ -46,5 +48,19 @@ export const custodyService = {
    */
   async getAttestationText(): Promise<AttestationTextResponse> {
     return api.get<AttestationTextResponse>('/custody/attestation-text');
+  },
+
+  /**
+   * Report a kit as lost (CUSTODY-007)
+   */
+  async reportLost(request: LostFoundRequest): Promise<LostFoundResponse> {
+    return api.post<LostFoundResponse>('/custody/report-lost', request);
+  },
+
+  /**
+   * Report a kit as found (CUSTODY-007)
+   */
+  async reportFound(request: LostFoundRequest): Promise<LostFoundResponse> {
+    return api.post<LostFoundResponse>('/custody/report-found', request);
   },
 };

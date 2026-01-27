@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Date
 from app.models.base import BaseModel
 import enum
 
@@ -9,6 +9,7 @@ class CustodyEventType(str, enum.Enum):
     checkin = "checkin"
     transfer = "transfer"
     lost = "lost"
+    found = "found"
 
 class CustodyEvent(BaseModel):
     __tablename__ = "custody_events"
@@ -33,3 +34,7 @@ class CustodyEvent(BaseModel):
     
     # Location type (on_premises or off_site)
     location_type = Column(String(50), nullable=False, default="on_premises")
+    
+    # Expected return date (for soft warnings - CUSTODY-008, CUSTODY-014)
+    # Optional for on-premises checkouts, recommended for off-site checkouts
+    expected_return_date = Column(Date, nullable=True)

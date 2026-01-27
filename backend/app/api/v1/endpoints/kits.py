@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models.kit import Kit
 from app.schemas.kit import KitCreate, KitResponse
 from app.services.qr_service import create_qr_image
+from app.services.warnings_service import calculate_kit_warnings
 
 router = APIRouter()
 
@@ -42,32 +43,115 @@ def list_kits(
     db: Session = Depends(get_db)
 ):
     """
-    List all kits.
+    List all kits with warning information.
+    
+    Implements CUSTODY-008 and CUSTODY-014:
+    - Calculates soft warnings for overdue returns and extended custody
+    - Warnings are non-blocking and informational only
     """
     kits = db.query(Kit).offset(skip).limit(limit).all()
-    return kits
+    
+    # Add warning information to each kit
+    kit_responses = []
+    for kit in kits:
+        kit_dict = {
+            "id": kit.id,
+            "code": kit.code,
+            "name": kit.name,
+            "description": kit.description,
+            "status": kit.status,
+            "current_custodian_id": kit.current_custodian_id,
+            "current_custodian_name": kit.current_custodian_name,
+            "created_at": kit.created_at,
+            "updated_at": kit.updated_at
+        }
+        
+        # Calculate warnings
+        warnings = calculate_kit_warnings(kit, db)
+        kit_dict.update({
+            "has_warning": warnings["has_warning"],
+            "overdue_return": warnings["overdue_return"],
+            "extended_custody": warnings["extended_custody"],
+            "days_overdue": warnings["days_overdue"],
+            "days_checked_out": warnings["days_checked_out"],
+            "expected_return_date": warnings["expected_return_date"]
+        })
+        
+        kit_responses.append(KitResponse(**kit_dict))
+    
+    return kit_responses
 
 @router.get("/{kit_id}", response_model=KitResponse)
 def get_kit(kit_id: int, db: Session = Depends(get_db)):
     """
-    Get a specific kit by ID.
+    Get a specific kit by ID with warning information.
     """
     kit = db.query(Kit).filter(Kit.id == kit_id).first()
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
-    return kit
+    
+    # Build response with warnings
+    kit_dict = {
+        "id": kit.id,
+        "code": kit.code,
+        "name": kit.name,
+        "description": kit.description,
+        "status": kit.status,
+        "current_custodian_id": kit.current_custodian_id,
+        "current_custodian_name": kit.current_custodian_name,
+        "created_at": kit.created_at,
+        "updated_at": kit.updated_at
+    }
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db)
+    kit_dict.update({
+        "has_warning": warnings["has_warning"],
+        "overdue_return": warnings["overdue_return"],
+        "extended_custody": warnings["extended_custody"],
+        "days_overdue": warnings["days_overdue"],
+        "days_checked_out": warnings["days_checked_out"],
+        "expected_return_date": warnings["expected_return_date"]
+    })
+    
+    return KitResponse(**kit_dict)
 
 @router.get("/code/{code}", response_model=KitResponse)
 def get_kit_by_code(code: str, db: Session = Depends(get_db)):
     """
-    Get a specific kit by code.
+    Get a specific kit by code with warning information.
     
     This supports QR-002 and QR-003: Scan QR code to check out/in kits.
     """
     kit = db.query(Kit).filter(Kit.code == code).first()
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
-    return kit
+    
+    # Build response with warnings
+    kit_dict = {
+        "id": kit.id,
+        "code": kit.code,
+        "name": kit.name,
+        "description": kit.description,
+        "status": kit.status,
+        "current_custodian_id": kit.current_custodian_id,
+        "current_custodian_name": kit.current_custodian_name,
+        "created_at": kit.created_at,
+        "updated_at": kit.updated_at
+    }
+    
+    # Calculate warnings
+    warnings = calculate_kit_warnings(kit, db)
+    kit_dict.update({
+        "has_warning": warnings["has_warning"],
+        "overdue_return": warnings["overdue_return"],
+        "extended_custody": warnings["extended_custody"],
+        "days_overdue": warnings["days_overdue"],
+        "days_checked_out": warnings["days_checked_out"],
+        "expected_return_date": warnings["expected_return_date"]
+    })
+    
+    return KitResponse(**kit_dict)
 
 @router.get("/{kit_id}/qr-image")
 def get_qr_image(

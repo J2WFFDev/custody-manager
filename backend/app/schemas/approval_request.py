@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 from app.models.approval_request import ApprovalStatus
 
 class OffSiteCheckoutRequest(BaseModel):
@@ -9,6 +9,7 @@ class OffSiteCheckoutRequest(BaseModel):
     custodian_name: str = Field(..., description="Name of person receiving custody (e.g., athlete/child)")
     custodian_id: Optional[int] = Field(None, description="User ID if custodian is in system")
     notes: Optional[str] = Field(None, description="Optional notes about the request")
+    expected_return_date: Optional[date] = Field(None, description="Expected return date for soft warnings")
     # Attestation fields (CUSTODY-012)
     attestation_signature: str = Field(..., description="Digital signature/acknowledgment (user's name)")
     attestation_accepted: bool = Field(..., description="Confirmation that user has read and accepted attestation")
@@ -35,6 +36,7 @@ class ApprovalRequestResponse(BaseModel):
     approver_role: Optional[str]
     notes: Optional[str]
     denial_reason: Optional[str]
+    expected_return_date: Optional[date]
     created_at: datetime
     updated_at: datetime
     # Attestation fields (CUSTODY-012)
