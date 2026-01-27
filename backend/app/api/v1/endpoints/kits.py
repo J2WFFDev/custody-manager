@@ -27,7 +27,8 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
     kit = Kit(
         code=kit_data.code,
         name=kit_data.name,
-        description=kit_data.description
+        description=kit_data.description,
+        serial_number=kit_data.serial_number  # Automatically encrypted by EncryptedString type
     )
     
     db.add(kit)
@@ -62,6 +63,7 @@ def list_kits(
             "status": kit.status,
             "current_custodian_id": kit.current_custodian_id,
             "current_custodian_name": kit.current_custodian_name,
+            "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
             "created_at": kit.created_at,
             "updated_at": kit.updated_at
         }
@@ -99,6 +101,7 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
         "status": kit.status,
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
         "created_at": kit.created_at,
         "updated_at": kit.updated_at
     }
@@ -136,6 +139,7 @@ def get_kit_by_code(code: str, db: Session = Depends(get_db)):
         "status": kit.status,
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "serial_number": kit.serial_number,  # Automatically decrypted by EncryptedString type
         "created_at": kit.created_at,
         "updated_at": kit.updated_at
     }

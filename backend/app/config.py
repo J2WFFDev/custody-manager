@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
+    # Field-level encryption (AUDIT-003)
+    ENCRYPTION_KEY: str = secrets.token_urlsafe(32)  # Auto-generate if not provided
+    
     # CORS - Allow production frontend
     BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:5173",
