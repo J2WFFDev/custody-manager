@@ -92,9 +92,31 @@ backend/
 └── requirements.txt     # Dependencies
 ```
 
+## Database Schema
+
+The application uses PostgreSQL with a comprehensive schema for custody tracking, user management, and audit trails. 
+
+**Documentation**:
+- **[Database Schema Overview](docs/SCHEMA.md)** - Complete schema documentation with all tables, relationships, and indexes
+- **[User Model](docs/USER_MODEL.md)** - Detailed user model documentation
+- **[OAuth Setup](docs/OAUTH_SETUP.md)** - Authentication configuration
+
+**Core Tables**:
+- `users` - OAuth authentication and role-based access control
+- `kits` - Equipment and firearm kits with QR codes
+- `custody_events` - Immutable audit trail of custody changes
+- `approval_requests` - Multi-role approval workflow for off-site custody
+- `maintenance_events` - Equipment maintenance tracking
+
 ## Database Migrations
 
 ```bash
+# View current migration status
+alembic current
+
+# View migration history
+alembic history
+
 # Create new migration
 alembic revision --autogenerate -m "description"
 
@@ -104,6 +126,8 @@ alembic upgrade head
 # Rollback migration
 alembic downgrade -1
 ```
+
+See [SCHEMA.md](docs/SCHEMA.md) for detailed migration documentation.
 
 ## Testing
 
