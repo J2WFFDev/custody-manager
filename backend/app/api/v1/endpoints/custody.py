@@ -304,7 +304,8 @@ def get_attestation_text():
     
     This endpoint:
     - Returns the standard attestation text that users must review and accept
-    - No authentication required (public endpoint for displaying terms)
+    - No authentication required (public endpoint) - Users need to review terms
+      before requesting checkout, and the text itself is not sensitive
     """
     return {
         "attestation_text": ATTESTATION_TEXT

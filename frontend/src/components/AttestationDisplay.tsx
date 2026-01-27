@@ -39,7 +39,12 @@ const AttestationDisplay: React.FC<AttestationDisplayProps> = ({
       </div>
 
       {/* Attestation Text Display */}
-      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-80 overflow-y-auto">
+      <div 
+        className="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-80 overflow-y-auto"
+        role="region"
+        aria-label="Legal attestation text"
+        tabIndex={0}
+      >
         <pre className="whitespace-pre-wrap text-sm text-gray-800 font-sans leading-relaxed">
           {attestationText}
         </pre>
