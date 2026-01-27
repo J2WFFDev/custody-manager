@@ -32,12 +32,12 @@ def upgrade() -> None:
         sa.Column('parts_replaced', sa.Text(), nullable=True),
         sa.Column('round_count', sa.Integer(), nullable=True),
         sa.Column('is_open', sa.Integer(), nullable=False, server_default='1'),
-        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+        sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
         sa.ForeignKeyConstraint(['kit_id'], ['kits.id'], ),
         sa.ForeignKeyConstraint(['opened_by_id'], ['users.id'], ),
-        sa.ForeignKeyConstraint(['closed_by_id'], ['users.id'], )
+        sa.ForeignKeyConstraint(['closed_by_id'], ['users.id'])
     )
     op.create_index(op.f('ix_maintenance_events_id'), 'maintenance_events', ['id'], unique=False)
     op.create_index(op.f('ix_maintenance_events_kit_id'), 'maintenance_events', ['kit_id'], unique=False)
