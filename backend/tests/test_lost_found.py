@@ -1,6 +1,6 @@
 import pytest
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.main import app
 
@@ -44,7 +44,7 @@ def sample_armorer(db_session):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test-armorer-123",
-        role="armorer",
+        role=UserRole.armorer,
         is_active=True
     )
     db_session.add(user)

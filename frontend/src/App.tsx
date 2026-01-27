@@ -1,7 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import AuthCallback from './pages/AuthCallback';
 import Kits from './pages/Kits';
 import Audit from './pages/Audit';
 import Users from './pages/Users';
@@ -12,12 +14,48 @@ function App() {
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/kits" element={<Kits />} />
-          <Route path="/audit" element={<Audit />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/approvals" element={<Approvals />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits"
+            element={
+              <ProtectedRoute>
+                <Kits />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audit"
+            element={
+              <ProtectedRoute>
+                <Audit />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/approvals"
+            element={
+              <ProtectedRoute>
+                <Approvals />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Layout>
     </Router>

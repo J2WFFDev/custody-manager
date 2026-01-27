@@ -3,7 +3,7 @@ import pytest
 from datetime import date, datetime
 from app.models.maintenance_event import MaintenanceEvent, MaintenanceEventType
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 def test_create_maintenance_event(db_session):
@@ -14,7 +14,7 @@ def test_create_maintenance_event(db_session):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test_oauth_id",
-        role="armorer"
+        role=UserRole.armorer
     )
     db_session.add(user)
     db_session.commit()
@@ -65,7 +65,7 @@ def test_maintenance_event_types(db_session):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test_oauth_id",
-        role="armorer"
+        role=UserRole.armorer
     )
     db_session.add(user)
     db_session.commit()
@@ -104,7 +104,7 @@ def test_maintenance_event_optional_fields(db_session):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test_oauth_id",
-        role="armorer"
+        role=UserRole.armorer
     )
     db_session.add(user)
     db_session.commit()

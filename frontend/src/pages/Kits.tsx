@@ -136,6 +136,8 @@ const Kits: React.FC = () => {
     
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(null), 5000);
+    // Reload kits to update maintenance status
+    await loadKits();
   };
 
   const handleReportLost = (kit: Kit) => {

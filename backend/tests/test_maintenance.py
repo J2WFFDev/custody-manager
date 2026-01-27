@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 
 # Use in-memory SQLite for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_maintenance.db"
@@ -67,7 +67,7 @@ def sample_armorer(db_setup):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test-armorer-123",
-        role="armorer",
+        role=UserRole.armorer,
         is_active=True
     )
     db.add(user)

@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.services.oauth import oauth
 from app.services.user_service import get_or_create_user
-from app.core.security import create_access_token, verify_token
-from app.schemas.user import UserResponse
+from app.core.security import create_access_token, create_refresh_token, verify_token
+from app.schemas.user import UserResponse, Token
 from app.config import settings
 from app.models.user import User
 import logging
@@ -37,12 +37,13 @@ async def google_callback(request: Request, db: Session = Depends(get_db)):
             name=user_info.get('name', user_info['email'])
         )
         
-        # Create JWT token
+        # Create JWT tokens
         access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+        refresh_token = create_refresh_token(data={"sub": str(user.id), "email": user.email})
         
-        # Redirect to frontend with token in URL fragment (more secure than query param)
+        # Redirect to frontend with tokens in URL fragment (more secure than query param)
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/auth/callback#token={access_token}"
+            url=f"{settings.FRONTEND_URL}/auth/callback#access_token={access_token}&refresh_token={refresh_token}"
         )
     except HTTPException:
         raise
@@ -74,12 +75,13 @@ async def microsoft_callback(request: Request, db: Session = Depends(get_db)):
             name=user_info.get('name', user_info['email'])
         )
         
-        # Create JWT token
+        # Create JWT tokens
         access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+        refresh_token = create_refresh_token(data={"sub": str(user.id), "email": user.email})
         
-        # Redirect to frontend with token in URL fragment (more secure than query param)
+        # Redirect to frontend with tokens in URL fragment (more secure than query param)
         return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/auth/callback#token={access_token}"
+            url=f"{settings.FRONTEND_URL}/auth/callback#access_token={access_token}&refresh_token={refresh_token}"
         )
     except HTTPException:
         raise
@@ -107,3 +109,31 @@ async def get_current_user(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     
     return user
+
+# Refresh access token using refresh token
+@router.post("/refresh", response_model=Token)
+async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    refresh_token = auth_header.replace("Bearer ", "")
+    payload = verify_token(refresh_token)
+    
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+    
+    # Verify it's a refresh token
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+    
+    user_id = payload.get("sub")
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create new access token
+    access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    
+    return Token(access_token=access_token, token_type="bearer", user=user)
