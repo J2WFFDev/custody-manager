@@ -16,7 +16,6 @@ These fields complete the append-only audit trail requirements.
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 
 # revision identifiers, used by Alembic.
