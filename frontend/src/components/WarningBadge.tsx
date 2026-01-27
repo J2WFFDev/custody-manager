@@ -8,9 +8,10 @@ interface WarningBadgeProps {
 /**
  * Warning badge component for displaying soft warnings on kits.
  * 
- * Implements CUSTODY-008 and CUSTODY-014:
+ * Implements CUSTODY-008, CUSTODY-014, and MAINT-002:
  * - Shows overdue return warnings
  * - Shows extended custody warnings
+ * - Shows overdue maintenance warnings
  * - Non-blocking visual indicators
  */
 const WarningBadge: React.FC<WarningBadgeProps> = ({ kit }) => {
@@ -24,10 +25,15 @@ const WarningBadge: React.FC<WarningBadgeProps> = ({ kit }) => {
   let warningText = '';
 
   if (kit.overdue_return && kit.days_overdue) {
-    // Overdue is more critical
+    // Overdue return is most critical
     warningColor = 'bg-red-100 text-red-800 border-red-300';
     warningIcon = '🔴';
     warningText = `Overdue ${kit.days_overdue} day${kit.days_overdue > 1 ? 's' : ''}`;
+  } else if (kit.overdue_maintenance && kit.days_maintenance_overdue) {
+    // Overdue maintenance is high priority
+    warningColor = 'bg-amber-100 text-amber-800 border-amber-300';
+    warningIcon = '🔧';
+    warningText = `Maint due ${kit.days_maintenance_overdue} day${kit.days_maintenance_overdue > 1 ? 's' : ''} ago`;
   } else if (kit.extended_custody && kit.days_checked_out) {
     // Extended custody is less critical
     warningColor = 'bg-orange-100 text-orange-800 border-orange-300';

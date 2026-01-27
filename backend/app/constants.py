@@ -7,10 +7,11 @@ from app.models.user import UserRole
 VALID_ROLES = [role.value for role in UserRole]
 DEFAULT_ROLE = UserRole.parent.value
 
-# Soft Warning Thresholds (CUSTODY-008, CUSTODY-014)
-# These control when warnings are displayed for custody events
+# Soft Warning Thresholds (CUSTODY-008, CUSTODY-014, MAINT-002)
+# These control when warnings are displayed for custody and maintenance events
 EXTENDED_CUSTODY_WARNING_DAYS = 7  # Warn if checked out for more than 7 days
 OVERDUE_RETURN_WARNING_DAYS = 0  # Warn immediately when past expected return date
+OVERDUE_MAINTENANCE_WARNING_DAYS = 0  # Warn immediately when maintenance is overdue
 
 # Responsibility Attestation Text (CUSTODY-012)
 # Legal disclaimer for off-site custody

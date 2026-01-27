@@ -27,7 +27,8 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
     kit = Kit(
         code=kit_data.code,
         name=kit_data.name,
-        description=kit_data.description
+        description=kit_data.description,
+        serial_number=kit_data.serial_number  # Will be encrypted by hybrid property
     )
     
     db.add(kit)
@@ -45,8 +46,9 @@ def list_kits(
     """
     List all kits with warning information.
     
-    Implements CUSTODY-008 and CUSTODY-014:
+    Implements CUSTODY-008, CUSTODY-014, and MAINT-002:
     - Calculates soft warnings for overdue returns and extended custody
+    - Calculates soft warnings for overdue maintenance
     - Warnings are non-blocking and informational only
     """
     kits = db.query(Kit).offset(skip).limit(limit).all()
@@ -60,8 +62,10 @@ def list_kits(
             "name": kit.name,
             "description": kit.description,
             "status": kit.status,
+            "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
             "current_custodian_id": kit.current_custodian_id,
             "current_custodian_name": kit.current_custodian_name,
+            "next_maintenance_date": kit.next_maintenance_date,
             "created_at": kit.created_at,
             "updated_at": kit.updated_at
         }
@@ -74,7 +78,9 @@ def list_kits(
             "extended_custody": warnings["extended_custody"],
             "days_overdue": warnings["days_overdue"],
             "days_checked_out": warnings["days_checked_out"],
-            "expected_return_date": warnings["expected_return_date"]
+            "expected_return_date": warnings["expected_return_date"],
+            "overdue_maintenance": warnings["overdue_maintenance"],
+            "days_maintenance_overdue": warnings["days_maintenance_overdue"]
         })
         
         kit_responses.append(KitResponse(**kit_dict))
@@ -97,8 +103,10 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
         "name": kit.name,
         "description": kit.description,
         "status": kit.status,
+        "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "next_maintenance_date": kit.next_maintenance_date,
         "created_at": kit.created_at,
         "updated_at": kit.updated_at
     }
@@ -111,7 +119,9 @@ def get_kit(kit_id: int, db: Session = Depends(get_db)):
         "extended_custody": warnings["extended_custody"],
         "days_overdue": warnings["days_overdue"],
         "days_checked_out": warnings["days_checked_out"],
-        "expected_return_date": warnings["expected_return_date"]
+        "expected_return_date": warnings["expected_return_date"],
+        "overdue_maintenance": warnings["overdue_maintenance"],
+        "days_maintenance_overdue": warnings["days_maintenance_overdue"]
     })
     
     return KitResponse(**kit_dict)
@@ -134,8 +144,10 @@ def get_kit_by_code(code: str, db: Session = Depends(get_db)):
         "name": kit.name,
         "description": kit.description,
         "status": kit.status,
+        "serial_number": kit.serial_number,  # Will be decrypted by hybrid property
         "current_custodian_id": kit.current_custodian_id,
         "current_custodian_name": kit.current_custodian_name,
+        "next_maintenance_date": kit.next_maintenance_date,
         "created_at": kit.created_at,
         "updated_at": kit.updated_at
     }
@@ -148,7 +160,9 @@ def get_kit_by_code(code: str, db: Session = Depends(get_db)):
         "extended_custody": warnings["extended_custody"],
         "days_overdue": warnings["days_overdue"],
         "days_checked_out": warnings["days_checked_out"],
-        "expected_return_date": warnings["expected_return_date"]
+        "expected_return_date": warnings["expected_return_date"],
+        "overdue_maintenance": warnings["overdue_maintenance"],
+        "days_maintenance_overdue": warnings["days_maintenance_overdue"]
     })
     
     return KitResponse(**kit_dict)

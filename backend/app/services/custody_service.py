@@ -120,9 +120,9 @@ def transfer_kit_custody(
     # Verify permissions - only Coach, Armorer, or Admin can transfer kits
     allowed_roles = [UserRole.coach, UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
+        # UserRole inherits from str, so .value returns the string representation
         raise HTTPException(
             status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can transfer kit custody"
             detail=f"Only {', '.join([r.value for r in allowed_roles])} can transfer kit custody"
         )
     
@@ -191,13 +191,9 @@ def report_kit_lost(
         HTTPException: If kit not found, already lost, or user lacks permission
     """
     # Verify permissions - only Armorer or Admin can report kits as lost
-    allowed_roles = ["armorer", "admin"]
-    if initiated_by_user.role not in allowed_roles:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Only {', '.join(allowed_roles)} can report kits as lost"
     allowed_roles = [UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
+        # UserRole inherits from str, so .value returns the string representation
         raise HTTPException(
             status_code=403,
             detail=f"Only {', '.join([r.value for r in allowed_roles])} can report kits as lost"

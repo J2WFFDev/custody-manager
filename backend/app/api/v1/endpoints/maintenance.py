@@ -94,13 +94,15 @@ def close_maintenance_endpoint(
     """
     Close maintenance on a kit, making it available again.
     
-    Implements MAINT-001:
+    Implements MAINT-001 and MAINT-002:
     - As an Armorer, I want to log maintenance events (open/close, parts replaced, round count)
+    - As an Armorer, I want to set next maintenance due date when closing maintenance
     
     This endpoint:
     - Verifies the user has permission (Armorer or Admin)
     - Checks that the kit is in maintenance
     - Updates the maintenance event with close information
+    - Sets next maintenance due date if provided
     - Updates kit status to available
     """
     # Close maintenance
@@ -110,7 +112,8 @@ def close_maintenance_endpoint(
         closed_by_user=current_user,
         notes=request.notes,
         parts_replaced=request.parts_replaced,
-        round_count=request.round_count
+        round_count=request.round_count,
+        next_maintenance_days=request.next_maintenance_days
     )
     
     return MaintenanceCloseResponse(

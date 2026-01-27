@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Text, Boolean
+from sqlalchemy import Column, String, Integer, ForeignKey, Text, Date
 from app.models.base import BaseModel
 
 class MaintenanceEvent(BaseModel):
@@ -39,12 +40,15 @@ class MaintenanceEvent(BaseModel):
     closed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     closed_by_name = Column(String(200), nullable=True)
     
-    # Maintenance details
+    # Maintenance details - using Text for potentially long content
     notes = Column(Text, nullable=True)
     parts_replaced = Column(Text, nullable=True)
     round_count = Column(Integer, nullable=True)
     
     # Status tracking - True for open, False for closed
     is_open = Column(Boolean, nullable=False, default=True)
+    
+    # Next scheduled maintenance date (set when closing maintenance)
+    next_maintenance_date = Column(Date, nullable=True)
     
     # Timestamps are inherited from BaseModel (created_at for open, updated_at for close)

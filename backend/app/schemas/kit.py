@@ -1,11 +1,3 @@
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
-from datetime import datetime
-
-class KitBase(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-    description: Optional[str] = None
-    serial_number: Optional[str] = None
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime, date
@@ -19,37 +11,33 @@ class KitBase(BaseModel):
 
 class KitCreate(KitBase):
     """Schema for creating a new kit"""
-    pass
+    serial_number: Optional[str] = Field(None, description="Equipment serial number (encrypted in database)")
 
 class KitUpdate(BaseModel):
     """Schema for updating an existing kit"""
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
-    serial_number: Optional[str] = None
+    serial_number: Optional[str] = Field(None, description="Equipment serial number (encrypted in database)")
 
-class KitResponse(KitBase):
-    """Schema for kit response"""
-    id: int
-    qr_code: str
-    created_at: datetime
-    updated_at: datetime
-    
-    model_config = ConfigDict(from_attributes=True)
 class KitResponse(KitBase):
     """Schema for kit API responses"""
     id: int
     status: KitStatus
+    serial_number: Optional[str] = Field(None, description="Equipment serial number (decrypted)")
     current_custodian_id: Optional[int] = None
     current_custodian_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    # Warning information (CUSTODY-008, CUSTODY-014)
+    next_maintenance_date: Optional[date] = Field(default=None, description="Next scheduled maintenance date")
+    # Warning information (CUSTODY-008, CUSTODY-014, MAINT-002)
     has_warning: Optional[bool] = Field(default=False, description="Whether kit has any warnings")
     overdue_return: Optional[bool] = Field(default=False, description="Whether return is overdue")
     extended_custody: Optional[bool] = Field(default=False, description="Whether custody has been extended")
     days_overdue: Optional[int] = Field(default=None, description="Days past expected return date")
     days_checked_out: Optional[int] = Field(default=None, description="Days since checkout")
     expected_return_date: Optional[date] = Field(default=None, description="Expected return date")
+    overdue_maintenance: Optional[bool] = Field(default=False, description="Whether maintenance is overdue")
+    days_maintenance_overdue: Optional[int] = Field(default=None, description="Days past next maintenance date")
     
     class Config:
         from_attributes = True
@@ -67,3 +55,4 @@ class KitLookupResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
