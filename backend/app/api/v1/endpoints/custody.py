@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.kit import Kit
 from app.schemas.custody_event import (
     CustodyCheckoutRequest,
@@ -58,10 +58,10 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
     # TODO: Replace with real JWT authentication
     # For development/testing, return a mock user
     # First try to find an admin user (needed for export endpoints)
-    user = db.query(User).filter(User.role == "admin").first()
+    user = db.query(User).filter(User.role == UserRole.admin).first()
     if not user:
         # Fall back to coach user
-        user = db.query(User).filter(User.role == "coach").first()
+        user = db.query(User).filter(User.role == UserRole.coach).first()
     if not user:
         # Create a mock coach user if none exists
         user = User(
@@ -400,7 +400,7 @@ def export_custody_events(
     - end_date: Optional ISO 8601 datetime (e.g., 2024-12-31T23:59:59)
     """
     # Verify user is admin
-    if current_user.role != "admin":
+    if current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=403,
             detail="Only admins can export audit logs"

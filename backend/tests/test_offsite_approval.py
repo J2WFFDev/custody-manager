@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from app.database import Base, get_db
 from app.main import app
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.constants import ATTESTATION_TEXT
@@ -65,7 +65,7 @@ def verified_parent(db_setup):
         name="Test Parent",
         oauth_provider="google",
         oauth_id="test-parent-123",
-        role="parent",
+        role=UserRole.parent,
         verified_adult=True,
         is_active=True
     )
@@ -84,7 +84,7 @@ def unverified_parent(db_setup):
         name="Unverified Parent",
         oauth_provider="google",
         oauth_id="test-unverified-123",
-        role="parent",
+        role=UserRole.parent,
         verified_adult=False,
         is_active=True
     )
@@ -103,7 +103,7 @@ def armorer(db_setup):
         name="Test Armorer",
         oauth_provider="google",
         oauth_id="test-armorer-123",
-        role="armorer",
+        role=UserRole.armorer,
         is_active=True
     )
     db.add(user)
@@ -121,7 +121,7 @@ def coach(db_setup):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-offsite-123",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     db.add(user)

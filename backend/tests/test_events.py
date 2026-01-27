@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from app.database import Base, get_db
 from app.main import app
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.custody_event import CustodyEvent, CustodyEventType
 
 # Use file-based SQLite for testing with proper cleanup
@@ -49,7 +49,7 @@ def sample_data(db_setup):
         name="Test Coach",
         oauth_provider="google",
         oauth_id="test-coach-123",
-        role="coach",
+        role=UserRole.coach,
         is_active=True
     )
     athlete = User(
@@ -57,7 +57,7 @@ def sample_data(db_setup):
         name="Test Athlete",
         oauth_provider="google",
         oauth_id="test-athlete-123",
-        role="parent",
+        role=UserRole.parent,
         is_active=True
     )
     db.add(coach)
