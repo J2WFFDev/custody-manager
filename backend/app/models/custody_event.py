@@ -1,5 +1,4 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Date, Text, DateTime, event
-from sqlalchemy.orm import validates
 from app.models.base import BaseModel
 import enum
 

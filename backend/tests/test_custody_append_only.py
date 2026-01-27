@@ -17,7 +17,7 @@ from app.models.kit import Kit, KitStatus
 from app.models.user import User, UserRole
 
 # Use in-memory SQLite for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test_custody_append_only.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
@@ -120,7 +120,7 @@ def test_create_custody_event_with_approved_by(db_session, sample_kit, sample_us
 
 def test_create_custody_event_with_attestation(db_session, sample_kit, sample_user):
     """Test creating custody event with attestation fields"""
-    from datetime import datetime
+    from datetime import datetime, timezone
     
     event = CustodyEvent(
         event_type=CustodyEventType.checkout_offsite,
@@ -131,7 +131,7 @@ def test_create_custody_event_with_attestation(db_session, sample_kit, sample_us
         custodian_name=sample_user.name,
         attestation_text="I agree to take responsibility...",
         attestation_signature="Test User",
-        attestation_timestamp=datetime.utcnow(),
+        attestation_timestamp=datetime.now(timezone.utc),
         attestation_ip_address="127.0.0.1",
         notes="Off-site checkout with attestation",
         location_type="off_site"
