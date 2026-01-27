@@ -6,7 +6,8 @@ import Modal from '../components/Modal';
 import KitRegistrationForm from '../components/KitRegistrationForm';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import CheckoutModal from '../components/CheckoutModal';
-import type { CustodyCheckoutResponse } from '../types/custody';
+import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
+import type { CustodyCheckoutResponse, OffSiteCheckoutResponse } from '../types/custody';
 
 const Kits: React.FC = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -15,6 +16,7 @@ const Kits: React.FC = () => {
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [showQRModal, setShowQRModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [showOffSiteCheckoutModal, setShowOffSiteCheckoutModal] = useState(false);
   const [selectedKit, setSelectedKit] = useState<Kit | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -66,6 +68,20 @@ const Kits: React.FC = () => {
     
     // Reload kits to update status
     await loadKits();
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccessMessage(null), 5000);
+  };
+
+  const handleOffSiteCheckout = (kit: Kit) => {
+    setSelectedKit(kit);
+    setShowOffSiteCheckoutModal(true);
+  };
+
+  const handleOffSiteCheckoutSuccess = async (response: OffSiteCheckoutResponse) => {
+    setShowOffSiteCheckoutModal(false);
+    setSelectedKit(null);
+    setSuccessMessage(response.message);
     
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(null), 5000);
@@ -177,17 +193,28 @@ const Kits: React.FC = () => {
               )}
 
               <div className="pt-4 border-t border-gray-200 space-y-2">
-                {/* Checkout button - only show if kit is available */}
+                {/* Checkout buttons - only show if kit is available */}
                 {kit.status === KitStatus.AVAILABLE && (
-                  <button
-                    onClick={() => handleCheckout(kit)}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    Check Out
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleCheckout(kit)}
+                      className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                      </svg>
+                      Check Out (On-Premises)
+                    </button>
+                    <button
+                      onClick={() => handleOffSiteCheckout(kit)}
+                      className="w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Request Off-Site Checkout
+                    </button>
+                  </>
                 )}
                 
                 {/* View QR button */}
@@ -253,6 +280,18 @@ const Kits: React.FC = () => {
             setSelectedKit(null);
           }}
           onSuccess={handleCheckoutSuccess}
+        />
+      )}
+
+      {/* Off-Site Checkout Modal */}
+      {showOffSiteCheckoutModal && selectedKit && (
+        <OffSiteCheckoutModal
+          kitCode={selectedKit.code}
+          onClose={() => {
+            setShowOffSiteCheckoutModal(false);
+            setSelectedKit(null);
+          }}
+          onSuccess={handleOffSiteCheckoutSuccess}
         />
       )}
     </div>

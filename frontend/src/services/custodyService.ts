@@ -1,7 +1,15 @@
 // Custody API service
 
 import { api } from './api';
-import type { CustodyCheckoutRequest, CustodyCheckoutResponse } from '../types/custody';
+import type { 
+  CustodyCheckoutRequest, 
+  CustodyCheckoutResponse,
+  OffSiteCheckoutRequest,
+  OffSiteCheckoutResponse,
+  ApprovalDecisionRequest,
+  ApprovalDecisionResponse,
+  ApprovalRequest
+} from '../types/custody';
 
 export const custodyService = {
   /**
@@ -9,5 +17,26 @@ export const custodyService = {
    */
   async checkoutKit(request: CustodyCheckoutRequest): Promise<CustodyCheckoutResponse> {
     return api.post<CustodyCheckoutResponse>('/custody/checkout', request);
+  },
+
+  /**
+   * Request off-site checkout approval
+   */
+  async requestOffSiteCheckout(request: OffSiteCheckoutRequest): Promise<OffSiteCheckoutResponse> {
+    return api.post<OffSiteCheckoutResponse>('/custody/offsite-request', request);
+  },
+
+  /**
+   * Approve or deny an off-site checkout request
+   */
+  async approveOrDenyOffSite(request: ApprovalDecisionRequest): Promise<ApprovalDecisionResponse> {
+    return api.post<ApprovalDecisionResponse>('/custody/offsite-approve', request);
+  },
+
+  /**
+   * Get pending approval requests
+   */
+  async getPendingApprovals(): Promise<ApprovalRequest[]> {
+    return api.get<ApprovalRequest[]>('/custody/pending-approvals');
   },
 };

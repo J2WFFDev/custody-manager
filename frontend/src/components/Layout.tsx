@@ -34,6 +34,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link to="/kits" className="hover:text-blue-200 transition-colors">
                   Kits
                 </Link>
+                <Link to="/approvals" className="hover:text-blue-200 transition-colors">
+                  Approvals
+                </Link>
                 <Link to="/users" className="hover:text-blue-200 transition-colors">
                   Users
                 </Link>
