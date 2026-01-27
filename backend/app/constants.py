@@ -6,6 +6,11 @@ Constants used throughout the application
 VALID_ROLES = ["admin", "armorer", "coach", "volunteer", "parent"]
 DEFAULT_ROLE = "parent"
 
+# Soft Warning Thresholds (CUSTODY-008, CUSTODY-014)
+# These control when warnings are displayed for custody events
+EXTENDED_CUSTODY_WARNING_DAYS = 7  # Warn if checked out for more than 7 days
+OVERDUE_RETURN_WARNING_DAYS = 0  # Warn immediately when past expected return date
+
 # Responsibility Attestation Text (CUSTODY-012)
 # Legal disclaimer for off-site custody
 ATTESTATION_TEXT = """
