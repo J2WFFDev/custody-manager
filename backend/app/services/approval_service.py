@@ -10,7 +10,7 @@ from datetime import datetime, timezone, date
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.constants import ATTESTATION_TEXT
 
 
@@ -149,7 +149,7 @@ def approve_or_deny_offsite_request(
         HTTPException: If request not found, already processed, or user lacks permission
     """
     # Verify permissions - only Armorer or Coach can approve/deny
-    allowed_roles = ["armorer", "coach", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.coach, UserRole.admin]
     if approver_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
@@ -260,7 +260,7 @@ def get_pending_approvals(
         HTTPException: If user lacks permission
     """
     # Verify permissions - only Armorer or Coach can see pending approvals
-    allowed_roles = ["armorer", "coach", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.coach, UserRole.admin]
     if approver_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
