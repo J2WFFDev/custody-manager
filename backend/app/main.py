@@ -12,7 +12,14 @@ app = FastAPI(
 )
 
 # Session middleware (required for OAuth)
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+# Must be added BEFORE other middleware to ensure proper session handling
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SECRET_KEY,
+    max_age=3600,  # 1 hour session lifetime
+    same_site="lax",  # CSRF protection while allowing OAuth redirects
+    https_only=settings.ENVIRONMENT == "production",  # Secure cookies in production
+)
 
 # CORS middleware
 app.add_middleware(

@@ -37,8 +37,24 @@ APP_NAME=WilcoSS Custody Manager API
 FRONTEND_URL=https://custody-manager.vercel.app
 BACKEND_CORS_ORIGINS=["https://custody-manager.vercel.app","https://*.vercel.app"]
 
-# Security (generate with: python -c "import secrets; print(secrets.token_urlsafe(32))")
+# Security - CRITICAL: Must be persistent across deployments for OAuth to work
+# Generate with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+# Must be at least 32 characters long
+# IMPORTANT: Set this BEFORE first deployment to avoid OAuth session issues
 SECRET_KEY=
+```
+
+**⚠️ CRITICAL: SECRET_KEY Configuration**
+
+The `SECRET_KEY` is essential for OAuth authentication to work correctly:
+- It encrypts session data used during OAuth flows
+- If it changes between deployments, users will get "mismatching_state" CSRF errors
+- Must be set as a persistent environment variable in Railway
+- Generate once and keep it the same across all deployments
+
+Generate a secure key:
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ### 4. Configure Build Settings
@@ -140,9 +156,11 @@ if os.getenv("RAILWAY_ENVIRONMENT") == "production":
 - Ensure migrations have been run
 
 ### OAuth Redirect Errors
+- **"mismatching_state" CSRF errors**: Verify SECRET_KEY is set and persistent in Railway environment variables
 - Verify redirect URIs match exactly in OAuth provider settings
 - Check `FRONTEND_URL` environment variable
 - Ensure CORS origins include your frontend domain
+- For Railway: Make sure SECRET_KEY doesn't change between deployments
 
 ### Application Won't Start
 - Check logs: `railway logs`
