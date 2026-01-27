@@ -32,3 +32,17 @@ class CustodyCheckoutResponse(BaseModel):
     event: CustodyEventResponse
     kit_name: str
     kit_code: str
+
+
+class LostFoundRequest(BaseModel):
+    """Request schema for reporting a kit as lost or found"""
+    kit_code: str = Field(..., description="Kit code (scanned from QR or manually entered)")
+    notes: Optional[str] = Field(None, description="Optional notes about circumstances")
+
+
+class LostFoundResponse(BaseModel):
+    """Response schema for lost/found operations"""
+    message: str
+    event: CustodyEventResponse
+    kit_name: str
+    kit_code: str

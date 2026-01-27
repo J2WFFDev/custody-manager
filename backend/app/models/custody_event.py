@@ -9,6 +9,7 @@ class CustodyEventType(str, enum.Enum):
     checkin = "checkin"
     transfer = "transfer"
     lost = "lost"
+    found = "found"
 
 class CustodyEvent(BaseModel):
     __tablename__ = "custody_events"

@@ -8,7 +8,9 @@ from app.models.kit import Kit
 from app.schemas.custody_event import (
     CustodyCheckoutRequest,
     CustodyCheckoutResponse,
-    CustodyEventResponse
+    CustodyEventResponse,
+    LostFoundRequest,
+    LostFoundResponse
 )
 from app.schemas.approval_request import (
     OffSiteCheckoutRequest,
@@ -17,7 +19,11 @@ from app.schemas.approval_request import (
     ApprovalDecisionResponse,
     ApprovalRequestResponse
 )
-from app.services.custody_service import checkout_kit_onprem
+from app.services.custody_service import (
+    checkout_kit_onprem,
+    report_kit_lost,
+    report_kit_found
+)
 from app.services.approval_service import (
     create_offsite_checkout_request,
     approve_or_deny_offsite_request,
@@ -310,3 +316,74 @@ def get_attestation_text():
     return {
         "attestation_text": ATTESTATION_TEXT
     }
+
+
+@router.post("/report-lost", response_model=LostFoundResponse, status_code=201)
+def report_lost(
+    request: LostFoundRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Report a kit as lost.
+    
+    Implements CUSTODY-007:
+    - As an Armorer, I want to report a kit as lost, so that everyone knows it's missing
+    
+    This endpoint:
+    - Verifies the user has permission (Armorer or Admin)
+    - Checks that the kit exists and is not already lost
+    - Creates an immutable custody event
+    - Updates kit status to lost
+    - Logs the event with notes about circumstances
+    """
+    # Perform lost report
+    custody_event, kit = report_kit_lost(
+        db=db,
+        kit_code=request.kit_code,
+        initiated_by_user=current_user,
+        notes=request.notes
+    )
+    
+    return LostFoundResponse(
+        message=f"Kit '{kit.name}' has been reported as lost",
+        event=CustodyEventResponse.model_validate(custody_event),
+        kit_name=kit.name,
+        kit_code=kit.code
+    )
+
+
+@router.post("/report-found", response_model=LostFoundResponse, status_code=201)
+def report_found(
+    request: LostFoundRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Report a kit as found (recovered).
+    
+    Implements CUSTODY-007:
+    - As an Armorer, I want to mark a kit as found when it's recovered
+    
+    This endpoint:
+    - Verifies the user has permission (Armorer or Admin)
+    - Checks that the kit exists and is currently lost
+    - Creates an immutable custody event
+    - Updates kit status to available
+    - Clears custodian information
+    - Logs the event with notes about recovery circumstances
+    """
+    # Perform found report
+    custody_event, kit = report_kit_found(
+        db=db,
+        kit_code=request.kit_code,
+        initiated_by_user=current_user,
+        notes=request.notes
+    )
+    
+    return LostFoundResponse(
+        message=f"Kit '{kit.name}' has been recovered and is now available",
+        event=CustodyEventResponse.model_validate(custody_event),
+        kit_name=kit.name,
+        kit_code=kit.code
+    )
