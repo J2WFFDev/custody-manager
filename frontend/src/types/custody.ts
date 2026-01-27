@@ -101,3 +101,20 @@ export interface ApprovalDecisionResponse {
 export interface AttestationTextResponse {
   attestation_text: string;
 }
+
+// Transfer custody types (CUSTODY-005)
+export interface CustodyTransferRequest {
+  kit_code: string;
+  new_custodian_name: string;
+  new_custodian_id?: number;
+  notes?: string;
+}
+
+export interface CustodyTransferResponse {
+  message: string;
+  event: CustodyEvent;
+  kit_name: string;
+  kit_code: string;
+  previous_custodian: string;
+  new_custodian: string;
+}

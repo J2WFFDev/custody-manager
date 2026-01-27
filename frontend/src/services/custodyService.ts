@@ -9,7 +9,9 @@ import type {
   ApprovalDecisionRequest,
   ApprovalDecisionResponse,
   ApprovalRequest,
-  AttestationTextResponse
+  AttestationTextResponse,
+  CustodyTransferRequest,
+  CustodyTransferResponse
 } from '../types/custody';
 
 export const custodyService = {
@@ -46,5 +48,12 @@ export const custodyService = {
    */
   async getAttestationText(): Promise<AttestationTextResponse> {
     return api.get<AttestationTextResponse>('/custody/attestation-text');
+  },
+
+  /**
+   * Transfer custody of a kit to a new custodian (CUSTODY-005)
+   */
+  async transferKitCustody(request: CustodyTransferRequest): Promise<CustodyTransferResponse> {
+    return api.post<CustodyTransferResponse>('/custody/transfer', request);
   },
 };

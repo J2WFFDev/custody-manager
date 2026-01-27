@@ -7,7 +7,8 @@ import KitRegistrationForm from '../components/KitRegistrationForm';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import CheckoutModal from '../components/CheckoutModal';
 import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
-import type { CustodyCheckoutResponse, OffSiteCheckoutResponse } from '../types/custody';
+import TransferCustodyModal from '../components/TransferCustodyModal';
+import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, CustodyTransferResponse } from '../types/custody';
 
 const Kits: React.FC = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -17,6 +18,7 @@ const Kits: React.FC = () => {
   const [showQRModal, setShowQRModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showOffSiteCheckoutModal, setShowOffSiteCheckoutModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedKit, setSelectedKit] = useState<Kit | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -82,6 +84,23 @@ const Kits: React.FC = () => {
     setShowOffSiteCheckoutModal(false);
     setSelectedKit(null);
     setSuccessMessage(response.message);
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccessMessage(null), 5000);
+  };
+
+  const handleTransfer = (kit: Kit) => {
+    setSelectedKit(kit);
+    setShowTransferModal(true);
+  };
+
+  const handleTransferSuccess = async (response: CustodyTransferResponse) => {
+    setShowTransferModal(false);
+    setSelectedKit(null);
+    setSuccessMessage(response.message);
+    
+    // Reload kits to update custodian
+    await loadKits();
     
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(null), 5000);
@@ -217,6 +236,19 @@ const Kits: React.FC = () => {
                   </>
                 )}
                 
+                {/* Transfer button - only show if kit is checked out */}
+                {kit.status === KitStatus.CHECKED_OUT && (
+                  <button
+                    onClick={() => handleTransfer(kit)}
+                    className="w-full bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    Transfer Custody
+                  </button>
+                )}
+                
                 {/* View QR button */}
                 <button
                   onClick={() => handleViewQR(kit)}
@@ -292,6 +324,19 @@ const Kits: React.FC = () => {
             setSelectedKit(null);
           }}
           onSuccess={handleOffSiteCheckoutSuccess}
+        />
+      )}
+
+      {/* Transfer Custody Modal */}
+      {showTransferModal && selectedKit && (
+        <TransferCustodyModal
+          kitCode={selectedKit.code}
+          currentCustodian={selectedKit.current_custodian_name || undefined}
+          onClose={() => {
+            setShowTransferModal(false);
+            setSelectedKit(null);
+          }}
+          onSuccess={handleTransferSuccess}
         />
       )}
     </div>
