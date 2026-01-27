@@ -22,5 +22,5 @@ COPY . .
 # Expose port (Railway will set $PORT)
 EXPOSE 8000
 
-# Start command - Railway will set PORT env var
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Use shell form to allow variable expansion
+CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
