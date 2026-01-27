@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import datetime
 
 from app.database import get_db
 from app.models.user import User
@@ -23,6 +25,10 @@ from app.services.approval_service import (
     approve_or_deny_offsite_request,
     get_pending_approvals
 )
+from app.services.export_service import (
+    export_custody_events_to_csv,
+    export_custody_events_to_json
+)
 from app.constants import ATTESTATION_TEXT
 
 router = APIRouter()
@@ -38,11 +44,15 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
     IMPORTANT: This is a MOCK implementation for development/testing.
     In production, this MUST verify JWT tokens and return the authenticated user.
     
-    Returns a mock coach user to allow testing of the checkout flow.
+    Returns a mock user for testing. Prioritizes admin for export endpoints.
     """
     # TODO: Replace with real JWT authentication
-    # For development/testing, return a mock coach user
-    user = db.query(User).filter(User.role == "coach").first()
+    # For development/testing, return a mock user
+    # First try to find an admin user (needed for export endpoints)
+    user = db.query(User).filter(User.role == "admin").first()
+    if not user:
+        # Fall back to coach user
+        user = db.query(User).filter(User.role == "coach").first()
     if not user:
         # Create a mock coach user if none exists
         user = User(
@@ -310,3 +320,100 @@ def get_attestation_text():
     return {
         "attestation_text": ATTESTATION_TEXT
     }
+
+
+@router.get("/export", status_code=200)
+def export_custody_events(
+    format: str = Query(..., description="Export format: 'csv' or 'json'"),
+    start_date: Optional[str] = Query(None, description="Start date (ISO 8601 format, e.g., 2024-01-01T00:00:00)"),
+    end_date: Optional[str] = Query(None, description="End date (ISO 8601 format, e.g., 2024-12-31T23:59:59)"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Export custody events to CSV or JSON format.
+    
+    Implements AUDIT-001:
+    - As an Admin, I want to export complete audit logs as CSV/JSON,
+      so that I can respond to incidents or compliance requests.
+    
+    This endpoint:
+    - Verifies the user is an Admin
+    - Exports all custody events in the specified format
+    - Supports optional date range filtering
+    - Returns file download response
+    
+    Query Parameters:
+    - format: 'csv' or 'json'
+    - start_date: Optional ISO 8601 datetime (e.g., 2024-01-01T00:00:00)
+    - end_date: Optional ISO 8601 datetime (e.g., 2024-12-31T23:59:59)
+    """
+    # Verify user is admin
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Only admins can export audit logs"
+        )
+    
+    # Validate format
+    if format.lower() not in ["csv", "json"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid format. Must be 'csv' or 'json'"
+        )
+    
+    # Parse dates if provided
+    start_datetime = None
+    end_datetime = None
+    
+    if start_date:
+        try:
+            start_datetime = datetime.fromisoformat(start_date)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid start_date format. Use ISO 8601 format (e.g., 2024-01-01T00:00:00)"
+            )
+    
+    if end_date:
+        try:
+            end_datetime = datetime.fromisoformat(end_date)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid end_date format. Use ISO 8601 format (e.g., 2024-12-31T23:59:59)"
+            )
+    
+    # Validate date range
+    if start_datetime and end_datetime and start_datetime > end_datetime:
+        raise HTTPException(
+            status_code=400,
+            detail="start_date must be before end_date"
+        )
+    
+    # Export based on format
+    if format.lower() == "csv":
+        content = export_custody_events_to_csv(
+            db=db,
+            start_date=start_datetime,
+            end_date=end_datetime
+        )
+        media_type = "text/csv"
+        filename = f"custody_events_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    else:  # json
+        content = export_custody_events_to_json(
+            db=db,
+            start_date=start_datetime,
+            end_date=end_datetime
+        )
+        media_type = "application/json"
+        filename = f"custody_events_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    # Return file download response
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
