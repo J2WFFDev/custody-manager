@@ -8,12 +8,10 @@ import QRCodeDisplay from '../components/QRCodeDisplay';
 import CheckoutModal from '../components/CheckoutModal';
 import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
 import TransferCustodyModal from '../components/TransferCustodyModal';
-import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, CustodyTransferResponse } from '../types/custody';
+import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, CustodyTransferResponse, LostFoundResponse } from '../types/custody';
 import MaintenanceModal from '../components/MaintenanceModal';
 import LostFoundModal from '../components/LostFoundModal';
-import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, LostFoundResponse } from '../types/custody';
 import WarningBadge from '../components/WarningBadge';
-import type { CustodyCheckoutResponse, OffSiteCheckoutResponse } from '../types/custody';
 import type { MaintenanceOpenResponse, MaintenanceCloseResponse } from '../types/maintenance';
 
 const Kits: React.FC = () => {
@@ -111,6 +109,9 @@ const Kits: React.FC = () => {
     
     // Reload kits to update custodian
     await loadKits();
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccessMessage(null), 5000);
   };
 
   const handleOpenMaintenance = (kit: Kit) => {
@@ -130,6 +131,11 @@ const Kits: React.FC = () => {
     setSelectedKit(null);
     setSuccessMessage(response.message);
     
+    // Reload kits to update status
+    await loadKits();
+    
+    // Clear success message after 5 seconds
+    setTimeout(() => setSuccessMessage(null), 5000);
     // Reload kits to update maintenance status
     await loadKits();
   };
