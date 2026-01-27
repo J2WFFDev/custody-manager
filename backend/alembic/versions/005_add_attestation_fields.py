@@ -1,7 +1,7 @@
 """Add attestation fields to approval_requests
 
-Revision ID: 005
-Revises: 004
+Revision ID: 005_add_attestation_fields
+Revises: 004_create_approval_requests
 Create Date: 2026-01-27
 
 Implements CUSTODY-012: Responsibility attestation for off-site custody
@@ -11,8 +11,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '005'
-down_revision = '004'
+revision = '005_add_attestation_fields'
+down_revision = '004_create_approval_requests'
 branch_labels = None
 depends_on = None
 
