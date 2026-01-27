@@ -1,14 +1,28 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.database import get_db
 from app.models.user import User
+from app.models.kit import Kit
 from app.schemas.custody_event import (
     CustodyCheckoutRequest,
     CustodyCheckoutResponse,
     CustodyEventResponse
 )
+from app.schemas.approval_request import (
+    OffSiteCheckoutRequest,
+    OffSiteCheckoutResponse,
+    ApprovalDecisionRequest,
+    ApprovalDecisionResponse,
+    ApprovalRequestResponse
+)
 from app.services.custody_service import checkout_kit_onprem
+from app.services.approval_service import (
+    create_offsite_checkout_request,
+    approve_or_deny_offsite_request,
+    get_pending_approvals
+)
 
 router = APIRouter()
 
@@ -79,3 +93,183 @@ def checkout_kit(
         kit_name=kit.name,
         kit_code=kit.code
     )
+
+
+@router.post("/offsite-request", response_model=OffSiteCheckoutResponse, status_code=201)
+def request_offsite_checkout(
+    request: OffSiteCheckoutRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Request off-site checkout approval for a kit.
+    
+    Implements:
+    - CUSTODY-011: As a Parent, I want to check out a kit for my child to take off-site
+    - AUTH-002: Verify user has verified_adult flag
+    
+    This endpoint:
+    - Verifies the user is a verified adult
+    - Checks that the kit is available
+    - Creates an approval request that requires Armorer or Coach approval
+    - Does NOT immediately check out the kit
+    """
+    # Create approval request
+    approval_request, kit = create_offsite_checkout_request(
+        db=db,
+        kit_code=request.kit_code,
+        custodian_name=request.custodian_name,
+        requester_user=current_user,
+        custodian_id=request.custodian_id,
+        notes=request.notes
+    )
+    
+    # Build response
+    approval_response = ApprovalRequestResponse(
+        id=approval_request.id,
+        kit_id=kit.id,
+        kit_name=kit.name,
+        kit_code=kit.code,
+        requester_id=approval_request.requester_id,
+        requester_name=approval_request.requester_name,
+        custodian_id=approval_request.custodian_id,
+        custodian_name=approval_request.custodian_name,
+        status=approval_request.status,
+        approver_id=approval_request.approver_id,
+        approver_name=approval_request.approver_name,
+        approver_role=approval_request.approver_role,
+        notes=approval_request.notes,
+        denial_reason=approval_request.denial_reason,
+        created_at=approval_request.created_at,
+        updated_at=approval_request.updated_at
+    )
+    
+    return OffSiteCheckoutResponse(
+        message=f"Off-site checkout request for kit '{kit.name}' submitted successfully. Awaiting approval from Armorer or Coach.",
+        approval_request=approval_response
+    )
+
+
+@router.post("/offsite-approve", response_model=ApprovalDecisionResponse, status_code=200)
+def approve_offsite_checkout(
+    request: ApprovalDecisionRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Approve or deny an off-site checkout request.
+    
+    Implements:
+    - CUSTODY-002: As an Armorer, I want to approve off-site checkout requests
+    - CUSTODY-003: As a Coach, I want to approve off-site checkout requests
+    
+    This endpoint:
+    - Verifies the user is an Armorer or Coach
+    - Approves or denies the request
+    - If approved, creates a custody event and checks out the kit off-site
+    - If denied, records the denial reason
+    """
+    # Process approval/denial
+    approval_request, custody_event, kit = approve_or_deny_offsite_request(
+        db=db,
+        approval_request_id=request.approval_request_id,
+        approver_user=current_user,
+        approve=request.approve,
+        denial_reason=request.denial_reason
+    )
+    
+    # Build response
+    approval_response = ApprovalRequestResponse(
+        id=approval_request.id,
+        kit_id=kit.id,
+        kit_name=kit.name,
+        kit_code=kit.code,
+        requester_id=approval_request.requester_id,
+        requester_name=approval_request.requester_name,
+        custodian_id=approval_request.custodian_id,
+        custodian_name=approval_request.custodian_name,
+        status=approval_request.status,
+        approver_id=approval_request.approver_id,
+        approver_name=approval_request.approver_name,
+        approver_role=approval_request.approver_role,
+        notes=approval_request.notes,
+        denial_reason=approval_request.denial_reason,
+        created_at=approval_request.created_at,
+        updated_at=approval_request.updated_at
+    )
+    
+    custody_event_dict = None
+    if custody_event:
+        custody_event_dict = {
+            "id": custody_event.id,
+            "event_type": custody_event.event_type.value,
+            "kit_id": custody_event.kit_id,
+            "initiated_by_id": custody_event.initiated_by_id,
+            "initiated_by_name": custody_event.initiated_by_name,
+            "custodian_id": custody_event.custodian_id,
+            "custodian_name": custody_event.custodian_name,
+            "notes": custody_event.notes,
+            "location_type": custody_event.location_type,
+            "created_at": custody_event.created_at.isoformat()
+        }
+    
+    if request.approve:
+        message = f"Off-site checkout request approved. Kit '{kit.name}' has been checked out to {approval_request.custodian_name}."
+    else:
+        message = f"Off-site checkout request denied. Reason: {approval_request.denial_reason}"
+    
+    return ApprovalDecisionResponse(
+        message=message,
+        approval_request=approval_response,
+        custody_event=custody_event_dict
+    )
+
+
+@router.get("/pending-approvals", response_model=List[ApprovalRequestResponse], status_code=200)
+def list_pending_approvals(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all pending off-site checkout approval requests.
+    
+    Implements:
+    - CUSTODY-002: As an Armorer, I want to approve off-site checkout requests
+    - CUSTODY-003: As a Coach, I want to approve off-site checkout requests
+    
+    This endpoint:
+    - Verifies the user is an Armorer or Coach
+    - Returns all pending approval requests
+    """
+    # Get pending approvals
+    pending_requests = get_pending_approvals(
+        db=db,
+        approver_user=current_user
+    )
+    
+    # Build response list
+    response_list = []
+    for approval_request in pending_requests:
+        # Get kit details
+        kit = db.query(Kit).filter(Kit.id == approval_request.kit_id).first()
+        
+        response_list.append(ApprovalRequestResponse(
+            id=approval_request.id,
+            kit_id=kit.id,
+            kit_name=kit.name,
+            kit_code=kit.code,
+            requester_id=approval_request.requester_id,
+            requester_name=approval_request.requester_name,
+            custodian_id=approval_request.custodian_id,
+            custodian_name=approval_request.custodian_name,
+            status=approval_request.status,
+            approver_id=approval_request.approver_id,
+            approver_name=approval_request.approver_name,
+            approver_role=approval_request.approver_role,
+            notes=approval_request.notes,
+            denial_reason=approval_request.denial_reason,
+            created_at=approval_request.created_at,
+            updated_at=approval_request.updated_at
+        ))
+    
+    return response_list
