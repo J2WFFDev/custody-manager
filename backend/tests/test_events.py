@@ -9,7 +9,7 @@ from app.models.kit import Kit, KitStatus
 from app.models.user import User
 from app.models.custody_event import CustodyEvent, CustodyEventType
 
-# Use in-memory SQLite for testing
+# Use file-based SQLite for testing with proper cleanup
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_events.db"
 
 engine = create_engine(
