@@ -12,7 +12,7 @@ from app.schemas.custody_event import (
     CustodyCheckoutResponse,
     CustodyEventResponse,
     CustodyTransferRequest,
-    CustodyTransferResponse
+    CustodyTransferResponse,
     LostFoundRequest,
     LostFoundResponse
 )
@@ -378,9 +378,6 @@ def export_custody_events(
     format: str = Query(..., description="Export format: 'csv' or 'json'"),
     start_date: Optional[str] = Query(None, description="Start date (ISO 8601 format, e.g., 2024-01-01T00:00:00)"),
     end_date: Optional[str] = Query(None, description="End date (ISO 8601 format, e.g., 2024-12-31T23:59:59)"),
-@router.post("/report-lost", response_model=LostFoundResponse, status_code=201)
-def report_lost(
-    request: LostFoundRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -470,6 +467,15 @@ def report_lost(
         headers={
             "Content-Disposition": f"attachment; filename={filename}"
         }
+    )
+
+@router.post("/report-lost", response_model=LostFoundResponse, status_code=201)
+def report_lost(
+    request: LostFoundRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
     Report a kit as lost.
     
     Implements CUSTODY-007:
