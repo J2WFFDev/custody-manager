@@ -280,10 +280,11 @@ kits = db.query(Kit).all()
 # Get first record
 kit = db.query(Kit).first()
 
-# Get by ID
+# Get by ID (recommended in SQLAlchemy 2.0)
 kit = db.query(Kit).filter(Kit.id == 1).first()
-# Or using get (deprecated in 2.0)
-kit = db.query(Kit).get(1)
+# Or using get_one_or_none
+from sqlalchemy import select
+kit = db.execute(select(Kit).where(Kit.id == 1)).scalar_one_or_none()
 
 # Filter
 active_users = db.query(User).filter(User.is_active == True).all()
