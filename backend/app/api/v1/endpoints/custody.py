@@ -11,6 +11,8 @@ from app.schemas.custody_event import (
     CustodyCheckoutRequest,
     CustodyCheckoutResponse,
     CustodyEventResponse,
+    CustodyTransferRequest,
+    CustodyTransferResponse
     LostFoundRequest,
     LostFoundResponse
 )
@@ -21,6 +23,7 @@ from app.schemas.approval_request import (
     ApprovalDecisionResponse,
     ApprovalRequestResponse
 )
+from app.services.custody_service import checkout_kit_onprem, transfer_kit_custody
 from app.services.custody_service import (
     checkout_kit_onprem,
     report_kit_lost,
@@ -110,6 +113,44 @@ def checkout_kit(
         event=CustodyEventResponse.model_validate(custody_event),
         kit_name=kit.name,
         kit_code=kit.code
+    )
+
+
+@router.post("/transfer", response_model=CustodyTransferResponse, status_code=201)
+def transfer_kit(
+    request: CustodyTransferRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Transfer custody of a kit from current custodian to a new custodian.
+    
+    Implements:
+    - CUSTODY-005: As a Coach, I want to transfer custody of a kit to another user, so that handoffs are documented.
+    
+    This endpoint:
+    - Verifies the user has permission (Coach, Armorer, or Admin)
+    - Checks that the kit is currently checked out
+    - Creates an immutable custody transfer event
+    - Updates kit custodian information
+    """
+    # Perform transfer
+    custody_event, kit, previous_custodian = transfer_kit_custody(
+        db=db,
+        kit_code=request.kit_code,
+        new_custodian_name=request.new_custodian_name,
+        initiated_by_user=current_user,
+        new_custodian_id=request.new_custodian_id,
+        notes=request.notes
+    )
+    
+    return CustodyTransferResponse(
+        message=f"Kit '{kit.name}' custody transferred from {previous_custodian} to {request.new_custodian_name}",
+        event=CustodyEventResponse.model_validate(custody_event),
+        kit_name=kit.name,
+        kit_code=kit.code,
+        previous_custodian=previous_custodian,
+        new_custodian=request.new_custodian_name
     )
 
 

@@ -107,6 +107,15 @@ export interface AttestationTextResponse {
   attestation_text: string;
 }
 
+// Transfer custody types (CUSTODY-005)
+export interface CustodyTransferRequest {
+  kit_code: string;
+  new_custodian_name: string;
+  new_custodian_id?: number;
+  notes?: string;
+}
+
+export interface CustodyTransferResponse {
 // Lost/Found reporting types (CUSTODY-007)
 export interface LostFoundRequest {
   kit_code: string;
@@ -118,4 +127,6 @@ export interface LostFoundResponse {
   event: CustodyEvent;
   kit_name: string;
   kit_code: string;
+  previous_custodian: string;
+  new_custodian: string;
 }
