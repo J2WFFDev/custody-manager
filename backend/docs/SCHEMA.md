@@ -98,18 +98,24 @@ class KitStatus(str, enum.Enum):
 
 **User Stories**: CUSTODY-001 through CUSTODY-015
 
+**Documentation**: [CUSTODY_EVENTS_APPEND_ONLY.md](CUSTODY_EVENTS_APPEND_ONLY.md)
+
 **Key Features**:
-- Append-only (no updates or deletes)
+- **Append-only (no updates or deletes)** - Enforced at ORM level with SQLAlchemy event listeners
 - Tracks check-out, check-in, transfers, lost/found
 - Supports both on-premises and off-site custody
 - Expected return dates for soft warnings
 - Denormalized names for historical accuracy
+- Approval tracking with approved_by fields
+- Digital attestation support for legal acknowledgments
+- Complete audit trail with timestamps and IP addresses
 
 **Indexes**:
 - Primary: `ix_custody_events_id` (id)
 - Performance: `ix_custody_events_kit_id` (kit_id) - for kit history queries
 - Performance: `ix_custody_events_event_type` (event_type) - for filtering by event type
 - Performance: `ix_custody_events_kit_id_created_at` (kit_id, created_at) - composite index for timeline queries
+- Performance: `ix_custody_events_approved_by_id` (approved_by_id) - for approval tracking
 
 **Schema**:
 | Column | Type | Constraints | Description |
@@ -123,9 +129,15 @@ class KitStatus(str, enum.Enum):
 | initiated_by_name | String(200) | Not Null | Name of initiator |
 | custodian_id | Integer | Nullable, FK(users.id) | User receiving custody |
 | custodian_name | String(200) | Not Null | Name of custodian |
+| approved_by_id | Integer | Nullable, FK(users.id), Indexed | User who approved event |
+| approved_by_name | String(200) | Nullable | Name of approver |
 | notes | String(1000) | Nullable | Optional notes |
 | location_type | String(50) | Not Null, Default: 'on_premises' | Location context |
 | expected_return_date | Date | Nullable | For soft warnings |
+| attestation_text | Text | Nullable | Legal attestation text |
+| attestation_signature | String(200) | Nullable | Digital signature |
+| attestation_timestamp | DateTime | Nullable | When attested |
+| attestation_ip_address | String(45) | Nullable | IP address for audit |
 
 **Enum: CustodyEventType**
 ```python
