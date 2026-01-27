@@ -3,6 +3,9 @@ from typing import List
 import secrets
 import os
 import base64
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # Application
@@ -62,7 +65,7 @@ class Settings(BaseSettings):
             # For development, auto-generate but warn
             if self.ENVIRONMENT == "development":
                 self.SECRET_KEY = secrets.token_urlsafe(32)
-                print("WARNING: Using auto-generated SECRET_KEY for development. Set SECRET_KEY in .env for production.")
+                logger.warning("Using auto-generated SECRET_KEY for development. Set SECRET_KEY in .env for production.")
             else:
                 raise ValueError(
                     "SECRET_KEY must be set in environment variables for production. "
