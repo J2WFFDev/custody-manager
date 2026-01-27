@@ -9,6 +9,8 @@ import CheckoutModal from '../components/CheckoutModal';
 import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
 import LostFoundModal from '../components/LostFoundModal';
 import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, LostFoundResponse } from '../types/custody';
+import WarningBadge from '../components/WarningBadge';
+import type { CustodyCheckoutResponse, OffSiteCheckoutResponse } from '../types/custody';
 
 const Kits: React.FC = () => {
   const [kits, setKits] = useState<Kit[]>([]);
@@ -198,9 +200,13 @@ const Kits: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-800">
                   {kit.name}
                 </h3>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(kit.status)}`}>
-                  {formatStatus(kit.status)}
-                </span>
+                <div className="flex flex-col gap-2 items-end">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(kit.status)}`}>
+                    {formatStatus(kit.status)}
+                  </span>
+                  {/* Show warning badge if kit has warnings */}
+                  <WarningBadge kit={kit} />
+                </div>
               </div>
               
               <p className="text-gray-600 text-sm mb-2">
@@ -216,6 +222,13 @@ const Kits: React.FC = () => {
               {kit.current_custodian_name && (
                 <p className="text-gray-600 text-sm mb-4">
                   Custodian: <strong>{kit.current_custodian_name}</strong>
+                </p>
+              )}
+              
+              {/* Show expected return date if available */}
+              {kit.expected_return_date && (
+                <p className="text-gray-600 text-sm mb-4">
+                  Expected Return: <strong>{new Date(kit.expected_return_date).toLocaleDateString()}</strong>
                 </p>
               )}
 

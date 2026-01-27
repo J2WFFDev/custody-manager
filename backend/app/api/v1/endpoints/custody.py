@@ -91,7 +91,8 @@ def checkout_kit(
         custodian_name=request.custodian_name,
         initiated_by_user=current_user,
         custodian_id=request.custodian_id,
-        notes=request.notes
+        notes=request.notes,
+        expected_return_date=request.expected_return_date
     )
     
     return CustodyCheckoutResponse(
@@ -134,7 +135,8 @@ def request_offsite_checkout(
         attestation_accepted=request.attestation_accepted,
         custodian_id=request.custodian_id,
         notes=request.notes,
-        request_ip=None  # TODO: Extract from request headers in production
+        request_ip=None,  # TODO: Extract from request headers in production
+        expected_return_date=request.expected_return_date
     )
     
     # Build response
@@ -211,6 +213,7 @@ def approve_offsite_checkout(
         approver_role=approval_request.approver_role,
         notes=approval_request.notes,
         denial_reason=approval_request.denial_reason,
+        expected_return_date=approval_request.expected_return_date,
         created_at=approval_request.created_at,
         updated_at=approval_request.updated_at,
         attestation_text=approval_request.attestation_text,
@@ -289,6 +292,7 @@ def list_pending_approvals(
             approver_role=approval_request.approver_role,
             notes=approval_request.notes,
             denial_reason=approval_request.denial_reason,
+            expected_return_date=approval_request.expected_return_date,
             created_at=approval_request.created_at,
             updated_at=approval_request.updated_at,
             attestation_text=approval_request.attestation_text,

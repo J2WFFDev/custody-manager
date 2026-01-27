@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Boolean, DateTime, Text
+from sqlalchemy import Column, String, Integer, ForeignKey, Enum as SQLEnum, Boolean, DateTime, Text, Date
 from app.models.base import BaseModel
 import enum
 
@@ -33,6 +33,9 @@ class ApprovalRequest(BaseModel):
     # Request details
     notes = Column(String(1000), nullable=True)
     denial_reason = Column(String(500), nullable=True)
+    
+    # Expected return date (for soft warnings - CUSTODY-008, CUSTODY-014)
+    expected_return_date = Column(Date, nullable=True)
     
     # Responsibility attestation (CUSTODY-012)
     attestation_text = Column(Text, nullable=True)  # The legal text presented to user

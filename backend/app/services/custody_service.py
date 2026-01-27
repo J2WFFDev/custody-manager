@@ -5,6 +5,7 @@ Custody service - handles custody event logic and validation
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from typing import Optional
+from datetime import date
 
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.models.kit import Kit, KitStatus
@@ -17,7 +18,8 @@ def checkout_kit_onprem(
     custodian_name: str,
     initiated_by_user: User,
     custodian_id: Optional[int] = None,
-    notes: Optional[str] = None
+    notes: Optional[str] = None,
+    expected_return_date: Optional[date] = None
 ) -> tuple[CustodyEvent, Kit]:
     """
     Check out a kit on-premises to a custodian.
@@ -69,7 +71,8 @@ def checkout_kit_onprem(
         custodian_id=custodian_id,
         custodian_name=custodian_name,
         notes=notes,
-        location_type="on_premises"
+        location_type="on_premises",
+        expected_return_date=expected_return_date
     )
     
     # Update kit status
