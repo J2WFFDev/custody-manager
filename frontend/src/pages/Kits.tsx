@@ -8,6 +8,9 @@ import QRCodeDisplay from '../components/QRCodeDisplay';
 import CheckoutModal from '../components/CheckoutModal';
 import OffSiteCheckoutModal from '../components/OffSiteCheckoutModal';
 import MaintenanceModal from '../components/MaintenanceModal';
+import LostFoundModal from '../components/LostFoundModal';
+import type { CustodyCheckoutResponse, OffSiteCheckoutResponse, LostFoundResponse } from '../types/custody';
+import WarningBadge from '../components/WarningBadge';
 import type { CustodyCheckoutResponse, OffSiteCheckoutResponse } from '../types/custody';
 import type { MaintenanceOpenResponse, MaintenanceCloseResponse } from '../types/maintenance';
 
@@ -21,6 +24,8 @@ const Kits: React.FC = () => {
   const [showOffSiteCheckoutModal, setShowOffSiteCheckoutModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState<'open' | 'close'>('open');
+  const [showLostFoundModal, setShowLostFoundModal] = useState(false);
+  const [lostFoundMode, setLostFoundMode] = useState<'lost' | 'found'>('lost');
   const [selectedKit, setSelectedKit] = useState<Kit | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -105,6 +110,20 @@ const Kits: React.FC = () => {
 
   const handleMaintenanceSuccess = async (response: MaintenanceOpenResponse | MaintenanceCloseResponse) => {
     setShowMaintenanceModal(false);
+  const handleReportLost = (kit: Kit) => {
+    setSelectedKit(kit);
+    setLostFoundMode('lost');
+    setShowLostFoundModal(true);
+  };
+
+  const handleReportFound = (kit: Kit) => {
+    setSelectedKit(kit);
+    setLostFoundMode('found');
+    setShowLostFoundModal(true);
+  };
+
+  const handleLostFoundSuccess = async (response: LostFoundResponse) => {
+    setShowLostFoundModal(false);
     setSelectedKit(null);
     setSuccessMessage(response.message);
     
@@ -199,9 +218,13 @@ const Kits: React.FC = () => {
                 <h3 className="text-xl font-semibold text-gray-800">
                   {kit.name}
                 </h3>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(kit.status)}`}>
-                  {formatStatus(kit.status)}
-                </span>
+                <div className="flex flex-col gap-2 items-end">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${getStatusBadgeColor(kit.status)}`}>
+                    {formatStatus(kit.status)}
+                  </span>
+                  {/* Show warning badge if kit has warnings */}
+                  <WarningBadge kit={kit} />
+                </div>
               </div>
               
               <p className="text-gray-600 text-sm mb-2">
@@ -217,6 +240,13 @@ const Kits: React.FC = () => {
               {kit.current_custodian_name && (
                 <p className="text-gray-600 text-sm mb-4">
                   Custodian: <strong>{kit.current_custodian_name}</strong>
+                </p>
+              )}
+              
+              {/* Show expected return date if available */}
+              {kit.expected_return_date && (
+                <p className="text-gray-600 text-sm mb-4">
+                  Expected Return: <strong>{new Date(kit.expected_return_date).toLocaleDateString()}</strong>
                 </p>
               )}
 
@@ -253,6 +283,32 @@ const Kits: React.FC = () => {
                       Open Maintenance
                     </button>
                   </>
+                )}
+
+                {/* Report Lost button - show for available or checked out kits */}
+                {(kit.status === KitStatus.AVAILABLE || kit.status === KitStatus.CHECKED_OUT) && (
+                  <button
+                    onClick={() => handleReportLost(kit)}
+                    className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Report Lost
+                  </button>
+                )}
+
+                {/* Report Found button - only show for lost kits */}
+                {kit.status === KitStatus.LOST && (
+                  <button
+                    onClick={() => handleReportFound(kit)}
+                    className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Report Found
+                  </button>
                 )}
                 
                 {/* Close maintenance button - only show if kit is in maintenance */}
@@ -358,6 +414,16 @@ const Kits: React.FC = () => {
             setSelectedKit(null);
           }}
           onSuccess={handleMaintenanceSuccess}
+      {/* Lost/Found Modal */}
+      {showLostFoundModal && selectedKit && (
+        <LostFoundModal
+          kitCode={selectedKit.code}
+          mode={lostFoundMode}
+          onClose={() => {
+            setShowLostFoundModal(false);
+            setSelectedKit(null);
+          }}
+          onSuccess={handleLostFoundSuccess}
         />
       )}
     </div>

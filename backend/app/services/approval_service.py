@@ -5,7 +5,7 @@ Approval service - handles off-site checkout approval logic
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, Request
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 from app.models.approval_request import ApprovalRequest, ApprovalStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
@@ -23,7 +23,8 @@ def create_offsite_checkout_request(
     attestation_accepted: bool,
     custodian_id: Optional[int] = None,
     notes: Optional[str] = None,
-    request_ip: Optional[str] = None
+    request_ip: Optional[str] = None,
+    expected_return_date: Optional[date] = None
 ) -> tuple[ApprovalRequest, Kit]:
     """
     Create an off-site checkout approval request with responsibility attestation.
@@ -103,6 +104,7 @@ def create_offsite_checkout_request(
         custodian_name=custodian_name,
         notes=notes,
         status=ApprovalStatus.pending,
+        expected_return_date=expected_return_date,
         # Attestation fields (CUSTODY-012)
         attestation_text=ATTESTATION_TEXT,
         attestation_signature=attestation_signature.strip(),
@@ -205,7 +207,8 @@ def approve_or_deny_offsite_request(
             custodian_id=approval_request.custodian_id,
             custodian_name=approval_request.custodian_name,
             notes=f"Approved by {approver_user.name} ({approver_user.role}). " + (approval_request.notes or ""),
-            location_type="off_site"
+            location_type="off_site",
+            expected_return_date=approval_request.expected_return_date
         )
         
         # Update kit status
