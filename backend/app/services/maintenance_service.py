@@ -8,7 +8,7 @@ from typing import Optional
 
 from app.models.maintenance_event import MaintenanceEvent
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 def open_maintenance(
@@ -40,7 +40,7 @@ def open_maintenance(
         HTTPException: If kit not found, already in maintenance, or user lacks permission
     """
     # Verify permissions - only Armorer or Admin can open maintenance
-    allowed_roles = ["armorer", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.admin]
     if opened_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
@@ -110,7 +110,7 @@ def close_maintenance(
         HTTPException: If kit not found, not in maintenance, or user lacks permission
     """
     # Verify permissions - only Armorer or Admin can close maintenance
-    allowed_roles = ["armorer", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.admin]
     if closed_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,

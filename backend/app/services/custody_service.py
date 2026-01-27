@@ -9,7 +9,7 @@ from datetime import date
 
 from app.models.custody_event import CustodyEvent, CustodyEventType
 from app.models.kit import Kit, KitStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 
 
 def checkout_kit_onprem(
@@ -43,7 +43,7 @@ def checkout_kit_onprem(
         HTTPException: If kit not found, already checked out, or user lacks permission
     """
     # Verify permissions - only Coach, Armorer, or Admin can checkout kits
-    allowed_roles = ["coach", "armorer", "admin"]
+    allowed_roles = [UserRole.coach, UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
@@ -118,7 +118,7 @@ def transfer_kit_custody(
         HTTPException: If kit not found, not checked out, or user lacks permission
     """
     # Verify permissions - only Coach, Armorer, or Admin can transfer kits
-    allowed_roles = ["coach", "armorer", "admin"]
+    allowed_roles = [UserRole.coach, UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
@@ -190,7 +190,7 @@ def report_kit_lost(
         HTTPException: If kit not found, already lost, or user lacks permission
     """
     # Verify permissions - only Armorer or Admin can report kits as lost
-    allowed_roles = ["armorer", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,
@@ -259,7 +259,7 @@ def report_kit_found(
         HTTPException: If kit not found, not currently lost, or user lacks permission
     """
     # Verify permissions - only Armorer or Admin can report kits as found
-    allowed_roles = ["armorer", "admin"]
+    allowed_roles = [UserRole.armorer, UserRole.admin]
     if initiated_by_user.role not in allowed_roles:
         raise HTTPException(
             status_code=403,

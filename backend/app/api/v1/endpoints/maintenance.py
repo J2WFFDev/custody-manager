@@ -40,7 +40,7 @@ async def get_current_user(db: Session = Depends(get_db)) -> User:
             name="Test Armorer",
             oauth_provider="google",
             oauth_id="test-armorer-oauth-id",
-            role="armorer",
+            role=UserRole.armorer,
             is_active=True
         )
         db.add(user)
