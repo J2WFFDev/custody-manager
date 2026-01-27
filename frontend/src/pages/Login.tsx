@@ -1,9 +1,12 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Check for error in URL params (from OAuth callback)
+  const [error] = useState<string | null>(searchParams.get('error'));
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -26,6 +29,12 @@ const Login: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
           Sign In
         </h1>
+
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
 
         <div className="space-y-4">
           <p className="text-center text-gray-600 mb-4">

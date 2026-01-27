@@ -12,6 +12,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -25,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           setCurrentUser(fetchedUser);
         }
       }
+      setLoading(false);
     };
 
     loadUser();
@@ -94,7 +96,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {children}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-gray-600">Loading...</div>
+          </div>
+        ) : (
+          children
+        )}
       </main>
 
       {/* Footer */}
