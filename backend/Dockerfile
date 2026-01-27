@@ -19,8 +19,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY . .
 
-# Copy and make start script executable
-COPY start.sh .
+# Make start script executable
 RUN chmod +x start.sh
 
 # Expose port (Railway will set $PORT)
