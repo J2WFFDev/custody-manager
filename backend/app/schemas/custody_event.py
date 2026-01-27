@@ -20,9 +20,15 @@ class CustodyEventResponse(BaseModel):
     initiated_by_name: str
     custodian_id: Optional[int]
     custodian_name: str
+    approved_by_id: Optional[int] = None
+    approved_by_name: Optional[str] = None
     notes: Optional[str]
     location_type: str
     expected_return_date: Optional[date]
+    attestation_text: Optional[str] = None
+    attestation_signature: Optional[str] = None
+    attestation_timestamp: Optional[datetime] = None
+    attestation_ip_address: Optional[str] = None
     created_at: datetime
     
     class Config:

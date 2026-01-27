@@ -29,7 +29,6 @@ def create_kit(kit_data: KitCreate, db: Session = Depends(get_db)):
         name=kit_data.name,
         description=kit_data.description,
         serial_number=kit_data.serial_number  # Automatically encrypted by EncryptedString type
-        serial_number=kit_data.serial_number  # Will be encrypted by hybrid property
     )
     
     db.add(kit)
