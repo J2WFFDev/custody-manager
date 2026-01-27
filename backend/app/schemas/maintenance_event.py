@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date
 
 
 class MaintenanceOpenRequest(BaseModel):
@@ -17,6 +17,7 @@ class MaintenanceCloseRequest(BaseModel):
     notes: Optional[str] = Field(None, description="Notes about the maintenance completion")
     parts_replaced: Optional[str] = Field(None, description="Parts that were replaced")
     round_count: Optional[int] = Field(None, description="Round count at maintenance completion")
+    next_maintenance_days: Optional[int] = Field(None, description="Number of days until next maintenance is due")
 
 
 class MaintenanceEventResponse(BaseModel):
@@ -31,6 +32,7 @@ class MaintenanceEventResponse(BaseModel):
     parts_replaced: Optional[str] = None
     round_count: Optional[int] = None
     is_open: int
+    next_maintenance_date: Optional[date] = None
     created_at: datetime
     updated_at: datetime
     

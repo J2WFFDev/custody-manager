@@ -1,9 +1,10 @@
 """
-Warnings service - calculates soft warnings for custody events
+Warnings service - calculates soft warnings for custody events and maintenance
 
-Implements CUSTODY-008 and CUSTODY-014:
+Implements CUSTODY-008, CUSTODY-014, and MAINT-002:
 - As an Armorer, I want to see soft warnings (overdue return, extended custody)
 - As a Parent, I want to receive soft warnings if a return is overdue
+- As an Armorer, I want to see soft warnings for overdue maintenance
 """
 
 from sqlalchemy.orm import Session
@@ -12,12 +13,12 @@ from datetime import date, datetime, timedelta
 
 from app.models.kit import Kit, KitStatus
 from app.models.custody_event import CustodyEvent, CustodyEventType
-from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS
+from app.constants import EXTENDED_CUSTODY_WARNING_DAYS, OVERDUE_RETURN_WARNING_DAYS, OVERDUE_MAINTENANCE_WARNING_DAYS
 
 
 def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
     """
-    Calculate warnings for a checked-out kit.
+    Calculate warnings for a kit - both custody and maintenance warnings.
     
     Returns dictionary with warning information:
     {
@@ -27,7 +28,10 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
         "days_overdue": int or None,
         "days_checked_out": int or None,
         "expected_return_date": date or None,
-        "checkout_date": datetime or None
+        "checkout_date": datetime or None,
+        "overdue_maintenance": bool,
+        "days_maintenance_overdue": int or None,
+        "next_maintenance_date": date or None
     }
     """
     warnings = {
@@ -37,50 +41,63 @@ def calculate_kit_warnings(kit: Kit, db: Session) -> Dict[str, Any]:
         "days_overdue": None,
         "days_checked_out": None,
         "expected_return_date": None,
-        "checkout_date": None
+        "checkout_date": None,
+        "overdue_maintenance": False,
+        "days_maintenance_overdue": None,
+        "next_maintenance_date": None
     }
     
-    # Only check warnings for checked-out kits
-    if kit.status != KitStatus.checked_out:
-        return warnings
-    
-    # Get the most recent checkout event for this kit
-    latest_checkout = db.query(CustodyEvent).filter(
-        CustodyEvent.kit_id == kit.id,
-        CustodyEvent.event_type.in_([
-            CustodyEventType.checkout_onprem,
-            CustodyEventType.checkout_offsite
-        ])
-    ).order_by(CustodyEvent.created_at.desc()).first()
-    
-    if not latest_checkout:
-        return warnings
-    
-    # Store checkout date
-    warnings["checkout_date"] = latest_checkout.created_at
-    
-    # Calculate days checked out
+    # Get today's date once for efficiency
     today = date.today()
-    checkout_date = latest_checkout.created_at.date()
-    days_checked_out = (today - checkout_date).days
-    warnings["days_checked_out"] = days_checked_out
     
-    # Check for overdue return
-    if latest_checkout.expected_return_date:
-        warnings["expected_return_date"] = latest_checkout.expected_return_date
+    # Check for custody warnings only for checked-out kits
+    if kit.status == KitStatus.checked_out:
+        # Get the most recent checkout event for this kit
+        latest_checkout = db.query(CustodyEvent).filter(
+            CustodyEvent.kit_id == kit.id,
+            CustodyEvent.event_type.in_([
+                CustodyEventType.checkout_onprem,
+                CustodyEventType.checkout_offsite
+            ])
+        ).order_by(CustodyEvent.created_at.desc()).first()
         
-        if today > latest_checkout.expected_return_date:
-            # Kit is overdue
-            days_overdue = (today - latest_checkout.expected_return_date).days
-            if days_overdue >= OVERDUE_RETURN_WARNING_DAYS:
-                warnings["overdue_return"] = True
-                warnings["days_overdue"] = days_overdue
+        if latest_checkout:
+            # Store checkout date
+            warnings["checkout_date"] = latest_checkout.created_at
+            
+            # Calculate days checked out
+            checkout_date = latest_checkout.created_at.date()
+            days_checked_out = (today - checkout_date).days
+            warnings["days_checked_out"] = days_checked_out
+            
+            # Check for overdue return
+            if latest_checkout.expected_return_date:
+                warnings["expected_return_date"] = latest_checkout.expected_return_date
+                
+                if today > latest_checkout.expected_return_date:
+                    # Kit is overdue
+                    days_overdue = (today - latest_checkout.expected_return_date).days
+                    if days_overdue >= OVERDUE_RETURN_WARNING_DAYS:
+                        warnings["overdue_return"] = True
+                        warnings["days_overdue"] = days_overdue
+                        warnings["has_warning"] = True
+            
+            # Check for extended custody (no expected return date or has been out too long)
+            if days_checked_out >= EXTENDED_CUSTODY_WARNING_DAYS:
+                warnings["extended_custody"] = True
                 warnings["has_warning"] = True
     
-    # Check for extended custody (no expected return date or has been out too long)
-    if days_checked_out >= EXTENDED_CUSTODY_WARNING_DAYS:
-        warnings["extended_custody"] = True
-        warnings["has_warning"] = True
+    # Check for maintenance warnings for all kits (except those in maintenance)
+    if kit.next_maintenance_date and kit.status != KitStatus.in_maintenance:
+        warnings["next_maintenance_date"] = kit.next_maintenance_date
+        
+        if today > kit.next_maintenance_date:
+            # Maintenance is overdue
+            days_maintenance_overdue = (today - kit.next_maintenance_date).days
+            if days_maintenance_overdue >= OVERDUE_MAINTENANCE_WARNING_DAYS:
+                warnings["overdue_maintenance"] = True
+                warnings["days_maintenance_overdue"] = days_maintenance_overdue
+                warnings["has_warning"] = True
     
     return warnings
 

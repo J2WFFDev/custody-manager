@@ -28,13 +28,16 @@ class KitResponse(KitBase):
     current_custodian_name: Optional[str] = None
     created_at: datetime
     updated_at: datetime
-    # Warning information (CUSTODY-008, CUSTODY-014)
+    next_maintenance_date: Optional[date] = Field(default=None, description="Next scheduled maintenance date")
+    # Warning information (CUSTODY-008, CUSTODY-014, MAINT-002)
     has_warning: Optional[bool] = Field(default=False, description="Whether kit has any warnings")
     overdue_return: Optional[bool] = Field(default=False, description="Whether return is overdue")
     extended_custody: Optional[bool] = Field(default=False, description="Whether custody has been extended")
     days_overdue: Optional[int] = Field(default=None, description="Days past expected return date")
     days_checked_out: Optional[int] = Field(default=None, description="Days since checkout")
     expected_return_date: Optional[date] = Field(default=None, description="Expected return date")
+    overdue_maintenance: Optional[bool] = Field(default=False, description="Whether maintenance is overdue")
+    days_maintenance_overdue: Optional[int] = Field(default=None, description="Days past next maintenance date")
     
     class Config:
         from_attributes = True

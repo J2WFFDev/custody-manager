@@ -1,13 +1,13 @@
 """Tests for MaintenanceEvent model"""
 import pytest
 from datetime import date, datetime
-from app.models.maintenance_event import MaintenanceEvent, MaintenanceEventType
+from app.models.maintenance_event import MaintenanceEvent
 from app.models.kit import Kit, KitStatus
 from app.models.user import User, UserRole
 
 
 def test_create_maintenance_event(db_session):
-    """Test creating a maintenance event"""
+    """Test creating a maintenance event (open)"""
     # Create a user first
     user = User(
         email="armorer@example.com",
@@ -29,26 +29,26 @@ def test_create_maintenance_event(db_session):
     db_session.add(kit)
     db_session.commit()
     
-    # Create a maintenance event
+    # Create a maintenance event (open)
     maintenance_event = MaintenanceEvent(
-        event_type=MaintenanceEventType.inspection,
         kit_id=kit.id,
-        performed_by_id=user.id,
-        performed_by_name=user.name,
+        opened_by_id=user.id,
+        opened_by_name=user.name,
         round_count=1000,
         parts_replaced="Magazine spring, firing pin",
         notes="Routine inspection after 1000 rounds",
-        next_maintenance_date=date(2026, 3, 1)
+        next_maintenance_date=date(2026, 3, 1),
+        is_open=1
     )
     db_session.add(maintenance_event)
     db_session.commit()
     
     # Verify the maintenance event was created
     assert maintenance_event.id is not None
-    assert maintenance_event.event_type == MaintenanceEventType.inspection
     assert maintenance_event.kit_id == kit.id
-    assert maintenance_event.performed_by_id == user.id
-    assert maintenance_event.performed_by_name == "Test Armorer"
+    assert maintenance_event.opened_by_id == user.id
+    assert maintenance_event.opened_by_name == "Test Armorer"
+    assert maintenance_event.is_open == 1
     assert maintenance_event.round_count == 1000
     assert maintenance_event.parts_replaced == "Magazine spring, firing pin"
     assert maintenance_event.notes == "Routine inspection after 1000 rounds"
@@ -57,17 +57,24 @@ def test_create_maintenance_event(db_session):
     assert maintenance_event.updated_at is not None
 
 
-def test_maintenance_event_types(db_session):
-    """Test all maintenance event types"""
-    # Create a user
-    user = User(
-        email="armorer@example.com",
-        name="Test Armorer",
+def test_close_maintenance_event(db_session):
+    """Test closing a maintenance event"""
+    # Create users
+    armorer1 = User(
+        email="armorer1@example.com",
+        name="Armorer One",
         oauth_provider="google",
-        oauth_id="test_oauth_id",
+        oauth_id="armorer1_oauth_id",
         role=UserRole.armorer
     )
-    db_session.add(user)
+    armorer2 = User(
+        email="armorer2@example.com",
+        name="Armorer Two",
+        oauth_provider="google",
+        oauth_id="armorer2_oauth_id",
+        role=UserRole.armorer
+    )
+    db_session.add_all([armorer1, armorer2])
     db_session.commit()
     
     # Create a kit
@@ -80,20 +87,28 @@ def test_maintenance_event_types(db_session):
     db_session.add(kit)
     db_session.commit()
     
-    # Test each event type
-    for event_type in MaintenanceEventType:
-        event = MaintenanceEvent(
-            event_type=event_type,
-            kit_id=kit.id,
-            performed_by_id=user.id,
-            performed_by_name=user.name,
-            notes=f"Testing {event_type.value} event type"
-        )
-        db_session.add(event)
-        db_session.commit()
-        
-        assert event.id is not None
-        assert event.event_type == event_type
+    # Create and open maintenance event
+    event = MaintenanceEvent(
+        kit_id=kit.id,
+        opened_by_id=armorer1.id,
+        opened_by_name=armorer1.name,
+        notes="Opening for maintenance",
+        is_open=1
+    )
+    db_session.add(event)
+    db_session.commit()
+    
+    # Close the event
+    event.closed_by_id = armorer2.id
+    event.closed_by_name = armorer2.name
+    event.is_open = 0
+    event.notes = f"{event.notes}\n\nClosed: Maintenance complete"
+    db_session.commit()
+    
+    # Verify the event was closed
+    assert event.is_open == 0
+    assert event.closed_by_id == armorer2.id
+    assert event.closed_by_name == "Armorer Two"
 
 
 def test_maintenance_event_optional_fields(db_session):
@@ -121,10 +136,10 @@ def test_maintenance_event_optional_fields(db_session):
     
     # Create maintenance event with only required fields
     maintenance_event = MaintenanceEvent(
-        event_type=MaintenanceEventType.open,
         kit_id=kit.id,
-        performed_by_id=user.id,
-        performed_by_name=user.name
+        opened_by_id=user.id,
+        opened_by_name=user.name,
+        is_open=1
     )
     db_session.add(maintenance_event)
     db_session.commit()
@@ -135,3 +150,5 @@ def test_maintenance_event_optional_fields(db_session):
     assert maintenance_event.parts_replaced is None
     assert maintenance_event.notes is None
     assert maintenance_event.next_maintenance_date is None
+    assert maintenance_event.closed_by_id is None
+    assert maintenance_event.closed_by_name is None
