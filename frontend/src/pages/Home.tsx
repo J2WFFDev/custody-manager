@@ -84,33 +84,9 @@ const Home: React.FC = () => {
         </Link>
 
         {/* Inventory Management Card */}
-        <Link
-          to="/inventory"
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
-        >
-          <div className="flex items-center justify-center mb-4">
-            <svg 
-              className="w-12 h-12 text-purple-600" 
-              width="48" 
-              height="48" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" 
-              />
-            </svg>
-          </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2 text-center">
-            Inventory Management
-          </h3>
-          <p className="text-gray-600 text-center text-sm">
-            View and manage all inventory items
-          </p>
+        <Link to="/inventory" className="block p-6 bg-white border rounded-lg shadow hover:shadow-lg transition-shadow">
+          <h2 className="text-xl font-semibold mb-2">📦 Inventory Management</h2>
+          <p className="text-gray-600">View and manage all inventory items</p>
         </Link>
 
         {/* Approvals Card (if role allows) */}

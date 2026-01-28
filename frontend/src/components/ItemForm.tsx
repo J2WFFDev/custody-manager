@@ -104,6 +104,8 @@ const ItemForm: React.FC<ItemFormProps> = ({ item, onSuccess, onCancel }) => {
               <option value="case">Case</option>
               <option value="magazine">Magazine</option>
               <option value="tool">Tool</option>
+              <option value="cleaning_kit">Cleaning Kit</option>
+              <option value="ammunition">Ammunition</option>
               <option value="accessory">Accessory</option>
               <option value="other">Other</option>
             </select>
