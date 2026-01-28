@@ -13,34 +13,26 @@ def client():
 class TestCORSConfiguration:
     """Test CORS configuration for frontend requests"""
     
-    def test_cors_preflight_request_from_production_frontend(self, client, monkeypatch):
-        """Test that OPTIONS preflight request from production frontend is allowed"""
+    def test_cors_preflight_request_from_production_frontend(self, monkeypatch):
+        """Test that get_cors_origins includes production frontend URL when set via environment"""
         # Set production frontend URL via environment variable
         monkeypatch.setenv("FRONTEND_URL", "https://custody-mgr-fe-production.up.railway.app")
         
-        # Reload settings to pick up the environment variable
+        # Create new settings instance to pick up the environment variable
         from app.config import Settings
         test_settings = Settings()
+        test_settings.validate_secret_key()
         
         # Verify the production URL is in the CORS origins
         origins = test_settings.get_cors_origins()
         assert "https://custody-mgr-fe-production.up.railway.app" in origins
         
-        # Simulate preflight request from production frontend
-        response = client.options(
-            "/api/v1/auth/me",
-            headers={
-                "Origin": "https://custody-mgr-fe-production.up.railway.app",
-                "Access-Control-Request-Method": "GET",
-                "Access-Control-Request-Headers": "authorization",
-            }
-        )
+        # Verify localhost is still included for development
+        assert "http://localhost:5173" in origins
         
-        # Note: TestClient might still return 400 because the app instance 
-        # was created before the environment variable was set.
-        # The key validation is that get_cors_origins() includes the production URL
-        # In production, the FRONTEND_URL will be set before the app starts
-        assert "https://custody-mgr-fe-production.up.railway.app" in origins
+        # Note: We only test the get_cors_origins() logic here, not the actual HTTP request
+        # because the test client's app instance was created before we set the environment
+        # variable. In production, FRONTEND_URL is set before the app starts.
     
     def test_cors_preflight_request_from_localhost(self, client):
         """Test that OPTIONS preflight request from localhost is allowed"""

@@ -28,7 +28,6 @@ app.add_middleware(
     allow_credentials=True,  # Required for Authorization header and cookies
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly include OPTIONS
     allow_headers=["*"],  # Allow all headers including Authorization
-    expose_headers=["*"],  # Expose response headers to frontend
     max_age=600,  # Cache preflight responses for 10 minutes
 )
 

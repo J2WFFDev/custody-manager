@@ -55,7 +55,6 @@ class Settings(BaseSettings):
         allowed_origins = [
             "http://localhost:5173",  # Vite dev server
             "http://localhost:3000",  # Alternative dev port
-            "https://custody-manager.vercel.app",  # Legacy Vercel deployment
         ]
         
         # Add production frontend URL if set and not already in list
