@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { kitItemService } from '../services/kitItemService';
 import type { KitItem, KitItemCreate, KitItemUpdate } from '../types/kitItem';
 

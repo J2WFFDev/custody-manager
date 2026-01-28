@@ -36,6 +36,6 @@ export const kitItemService = {
    * Remove an item from a kit
    */
   async deleteKitItem(kitId: number, itemId: number): Promise<void> {
-    return api.delete<void>(`/kits/${kitId}/items/${itemId}`);
+    await api.delete(`/kits/${kitId}/items/${itemId}`);
   },
 };
