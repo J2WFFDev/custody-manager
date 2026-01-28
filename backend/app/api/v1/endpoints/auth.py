@@ -8,7 +8,7 @@ from app.schemas.user import UserResponse, Token
 from app.config import settings
 from app.models.user import User
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
-from datetime import datetime
+from datetime import datetime, timezone
 from urllib.parse import urlencode
 import logging
 import requests
@@ -26,7 +26,7 @@ async def google_login(request: Request):
     # Generate encrypted state token with timestamp for validation
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state = state_serializer.dumps(state_data)
     
@@ -90,16 +90,16 @@ async def google_callback(
             raise HTTPException(status_code=400, detail="Failed to exchange code for token")
         
         token_data = token_response.json()
-        access_token = token_data.get("access_token")
+        oauth_access_token = token_data.get("access_token")
         
-        if not access_token:
+        if not oauth_access_token:
             logger.error("No access token in response")
             raise HTTPException(status_code=400, detail="No access token received")
         
         # Get user info from Google
         user_info_response = requests.get(
             "https://www.googleapis.com/oauth2/v2/userinfo",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {oauth_access_token}"},
             timeout=10
         )
         
@@ -138,6 +138,9 @@ async def google_callback(
     except BadSignature:
         logger.error("Invalid state signature - possible CSRF attack")
         raise HTTPException(status_code=400, detail="Invalid state - possible CSRF attack")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Network error during OAuth: {str(e)}")
+        raise HTTPException(status_code=503, detail="Network error - please try again")
     except HTTPException:
         raise
     except Exception as e:
@@ -151,7 +154,7 @@ async def microsoft_login(request: Request):
     # Generate encrypted state token with timestamp for validation
     state_data = {
         "provider": "microsoft",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state = state_serializer.dumps(state_data)
     
@@ -217,16 +220,16 @@ async def microsoft_callback(
             raise HTTPException(status_code=400, detail="Failed to exchange code for token")
         
         token_data = token_response.json()
-        access_token = token_data.get("access_token")
+        oauth_access_token = token_data.get("access_token")
         
-        if not access_token:
+        if not oauth_access_token:
             logger.error("No access token in response")
             raise HTTPException(status_code=400, detail="No access token received")
         
         # Get user info from Microsoft Graph API
         user_info_response = requests.get(
             "https://graph.microsoft.com/v1.0/me",
-            headers={"Authorization": f"Bearer {access_token}"},
+            headers={"Authorization": f"Bearer {oauth_access_token}"},
             timeout=10
         )
         
@@ -269,6 +272,9 @@ async def microsoft_callback(
     except BadSignature:
         logger.error("Invalid state signature - possible CSRF attack")
         raise HTTPException(status_code=400, detail="Invalid state - possible CSRF attack")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Network error during OAuth: {str(e)}")
+        raise HTTPException(status_code=503, detail="Network error - please try again")
     except HTTPException:
         raise
     except Exception as e:

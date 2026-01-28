@@ -7,10 +7,9 @@ from app.database import Base, get_db
 from app.core.security import create_access_token, create_refresh_token
 from app.models.user import User
 from app.api.v1.endpoints.auth import state_serializer
-from datetime import datetime
+from datetime import datetime, timezone
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from unittest.mock import patch, MagicMock
-import time
 
 # Create test database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_auth.db"
@@ -132,7 +131,7 @@ def test_state_token_generation():
     """Test that state tokens are generated and can be validated"""
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
@@ -150,7 +149,7 @@ def test_state_token_validation_success():
     """Test successful state token validation"""
     state_data = {
         "provider": "microsoft",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
@@ -163,7 +162,7 @@ def test_state_token_tampering_detection():
     """Test that tampered state tokens are rejected"""
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
@@ -179,17 +178,13 @@ def test_state_token_expiration():
     """Test that expired state tokens are rejected"""
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
-    # Create serializer with very short max_age for testing
     state_token = state_serializer.dumps(state_data)
     
-    # Sleep to ensure token expires
-    time.sleep(2)
-    
-    # Should raise SignatureExpired with max_age=1
+    # Use negative max_age to test expiration instantly
     with pytest.raises(SignatureExpired):
-        state_serializer.loads(state_token, max_age=1)
+        state_serializer.loads(state_token, max_age=-1)
 
 
 def test_google_login_redirects_to_google(client):
@@ -226,7 +221,7 @@ def test_google_callback_missing_code(client):
     """Test that callback fails without code parameter"""
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
@@ -251,15 +246,11 @@ def test_google_callback_invalid_state(client):
 
 def test_google_callback_expired_state(client):
     """Test that callback fails with expired state"""
-    # Create an old timestamp
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
-    
-    # Sleep to ensure expiration
-    time.sleep(2)
     
     # Mock the state_serializer.loads to raise SignatureExpired
     with patch('app.api.v1.endpoints.auth.state_serializer.loads') as mock_loads:
@@ -274,7 +265,7 @@ def test_google_callback_wrong_provider_in_state(client):
     """Test that callback fails when state contains wrong provider"""
     state_data = {
         "provider": "microsoft",  # Wrong provider
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
@@ -300,7 +291,7 @@ def test_oauth_error_parameter(client):
     """Test that OAuth errors are handled properly"""
     state_data = {
         "provider": "google",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     state_token = state_serializer.dumps(state_data)
     
