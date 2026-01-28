@@ -109,9 +109,11 @@ async def google_callback(
         
         user_info = user_info_response.json()
         
-        if not user_info or not user_info.get('sub') or not user_info.get('email'):
+        # Handle both 'sub' (OIDC) and 'id' (OAuth2 userinfo)
+        oauth_id = user_info.get('sub') or user_info.get('id')
+        if not oauth_id or not user_info.get('email'):
             logger.error(f"Invalid user info received: {user_info}")
-            raise HTTPException(status_code=400, detail="Invalid user info from Google")
+            raise HTTPException(status_code=400, detail="Failed to get user ID from Google")
         
         logger.info(f"User info retrieved for: {user_info.get('email')}")
         
@@ -119,7 +121,7 @@ async def google_callback(
         user = get_or_create_user(
             db=db,
             provider="google",
-            oauth_id=user_info['sub'],
+            oauth_id=oauth_id,
             email=user_info['email'],
             name=user_info.get('name', user_info['email'])
         )
@@ -239,13 +241,13 @@ async def microsoft_callback(
         
         user_info = user_info_response.json()
         
-        # Microsoft Graph API returns 'id' instead of 'sub' and 'userPrincipalName' or 'mail' for email
-        oauth_id = user_info.get('id')
+        # Handle both 'sub' and 'id'
+        oauth_id = user_info.get('sub') or user_info.get('id')
         email = user_info.get('mail') or user_info.get('userPrincipalName')
         
         if not oauth_id or not email:
             logger.error(f"Invalid user info received: {user_info}")
-            raise HTTPException(status_code=400, detail="Invalid user info from Microsoft")
+            raise HTTPException(status_code=400, detail="Failed to get user ID from Microsoft")
         
         logger.info(f"User info retrieved for: {email}")
         
