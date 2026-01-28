@@ -6,6 +6,11 @@ from app.main import app
 from app.database import Base, get_db
 from app.core.security import create_access_token, create_refresh_token
 from app.models.user import User
+from app.api.v1.endpoints.auth import state_serializer
+from datetime import datetime
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from unittest.mock import patch, MagicMock
+import time
 
 # Create test database
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_auth.db"
@@ -120,3 +125,185 @@ def test_refresh_with_invalid_token(client):
         headers={"Authorization": "Bearer invalid_token"}
     )
     assert response.status_code == 401
+
+
+# Stateless OAuth State Token Tests
+def test_state_token_generation():
+    """Test that state tokens are generated and can be validated"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Token should be a non-empty string
+    assert isinstance(state_token, str)
+    assert len(state_token) > 0
+    
+    # Token should be decodable
+    decoded_data = state_serializer.loads(state_token)
+    assert decoded_data["provider"] == "google"
+    assert "timestamp" in decoded_data
+
+
+def test_state_token_validation_success():
+    """Test successful state token validation"""
+    state_data = {
+        "provider": "microsoft",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Validate with 600 second max age (same as in production)
+    decoded_data = state_serializer.loads(state_token, max_age=600)
+    assert decoded_data["provider"] == "microsoft"
+
+
+def test_state_token_tampering_detection():
+    """Test that tampered state tokens are rejected"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Tamper with the token
+    tampered_token = state_token[:-5] + "XXXXX"
+    
+    # Should raise BadSignature
+    with pytest.raises(BadSignature):
+        state_serializer.loads(tampered_token)
+
+
+def test_state_token_expiration():
+    """Test that expired state tokens are rejected"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    # Create serializer with very short max_age for testing
+    state_token = state_serializer.dumps(state_data)
+    
+    # Sleep to ensure token expires
+    time.sleep(2)
+    
+    # Should raise SignatureExpired with max_age=1
+    with pytest.raises(SignatureExpired):
+        state_serializer.loads(state_token, max_age=1)
+
+
+def test_google_login_redirects_to_google(client):
+    """Test that /auth/google/login redirects to Google OAuth"""
+    response = client.get("/api/v1/auth/google/login", follow_redirects=False)
+    
+    assert response.status_code == 307  # Redirect status
+    assert "location" in response.headers
+    
+    location = response.headers["location"]
+    assert "accounts.google.com" in location
+    assert "client_id" in location
+    assert "redirect_uri" in location
+    assert "state" in location
+    assert "scope=openid" in location
+
+
+def test_microsoft_login_redirects_to_microsoft(client):
+    """Test that /auth/microsoft/login redirects to Microsoft OAuth"""
+    response = client.get("/api/v1/auth/microsoft/login", follow_redirects=False)
+    
+    assert response.status_code == 307  # Redirect status
+    assert "location" in response.headers
+    
+    location = response.headers["location"]
+    assert "login.microsoftonline.com" in location
+    assert "client_id" in location
+    assert "redirect_uri" in location
+    assert "state" in location
+    assert "scope=openid" in location
+
+
+def test_google_callback_missing_code(client):
+    """Test that callback fails without code parameter"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    response = client.get(f"/api/v1/auth/google/callback?state={state_token}")
+    assert response.status_code == 400
+    assert "Missing code or state parameter" in response.json()["detail"]
+
+
+def test_google_callback_missing_state(client):
+    """Test that callback fails without state parameter"""
+    response = client.get("/api/v1/auth/google/callback?code=test_code")
+    assert response.status_code == 400
+    assert "Missing code or state parameter" in response.json()["detail"]
+
+
+def test_google_callback_invalid_state(client):
+    """Test that callback fails with invalid state"""
+    response = client.get("/api/v1/auth/google/callback?code=test_code&state=invalid_state")
+    assert response.status_code == 400
+    assert "Invalid state" in response.json()["detail"]
+
+
+def test_google_callback_expired_state(client):
+    """Test that callback fails with expired state"""
+    # Create an old timestamp
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Sleep to ensure expiration
+    time.sleep(2)
+    
+    # Mock the state_serializer.loads to raise SignatureExpired
+    with patch('app.api.v1.endpoints.auth.state_serializer.loads') as mock_loads:
+        mock_loads.side_effect = SignatureExpired("Signature expired")
+        
+        response = client.get(f"/api/v1/auth/google/callback?code=test_code&state={state_token}")
+        assert response.status_code == 400
+        assert "State expired" in response.json()["detail"]
+
+
+def test_google_callback_wrong_provider_in_state(client):
+    """Test that callback fails when state contains wrong provider"""
+    state_data = {
+        "provider": "microsoft",  # Wrong provider
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock successful token exchange to isolate state validation test
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"access_token": "mock_token"}
+    
+    with patch('requests.post', return_value=mock_response):
+        response = client.get(f"/api/v1/auth/google/callback?code=test_code&state={state_token}")
+        assert response.status_code == 400
+        assert "Invalid state parameter - provider mismatch" in response.json()["detail"]
+
+
+def test_microsoft_callback_missing_parameters(client):
+    """Test that Microsoft callback fails without required parameters"""
+    response = client.get("/api/v1/auth/microsoft/callback")
+    assert response.status_code == 400
+    assert "Missing code or state parameter" in response.json()["detail"]
+
+
+def test_oauth_error_parameter(client):
+    """Test that OAuth errors are handled properly"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    response = client.get(f"/api/v1/auth/google/callback?error=access_denied&state={state_token}")
+    assert response.status_code == 400
+    assert "OAuth error: access_denied" in response.json()["detail"]
