@@ -83,6 +83,12 @@ const Home: React.FC = () => {
           <p className="text-gray-600">Scan QR codes for equipment tracking</p>
         </Link>
 
+        {/* Inventory Management Card */}
+        <Link to="/inventory" className="block p-6 bg-white border rounded-lg shadow hover:shadow-lg transition-shadow">
+          <h2 className="text-xl font-semibold mb-2">📦 Inventory Management</h2>
+          <p className="text-gray-600">View and manage all inventory items</p>
+        </Link>
+
         {/* Approvals Card (if role allows) */}
         {user && ['admin', 'armorer', 'coach'].includes(user.role) && (
           <Link to="/approvals" className="block p-6 bg-white border rounded-lg shadow hover:shadow-lg transition-shadow">
