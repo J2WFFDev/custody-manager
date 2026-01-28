@@ -6,36 +6,63 @@ from app.core.encryption import encrypt_field, decrypt_field
 import enum
 
 
+class ItemStatus(str, enum.Enum):
+    """Item status enum - tracks item availability and assignment status"""
+    available = "available"        # Not assigned to any kit
+    assigned = "assigned"          # Assigned to a kit (in storage)
+    checked_out = "checked_out"    # Currently checked out with kit
+    lost = "lost"                  # Reported lost
+    maintenance = "maintenance"    # Under maintenance
+
+
+class ItemType(str, enum.Enum):
+    """Item type enum - categorizes inventory items"""
+    firearm = "firearm"
+    optic = "optic"
+    case = "case"
+    magazine = "magazine"
+    tool = "tool"
+    accessory = "accessory"
+    other = "other"
+
+
+# Keep backward compatibility alias
 class KitItemStatus(str, enum.Enum):
-    """Kit item status enum - tracks individual component status"""
+    """Deprecated: Use ItemStatus instead"""
     in_kit = "in_kit"
     checked_out = "checked_out"
     lost = "lost"
     maintenance = "maintenance"
 
 
-class KitItem(BaseModel):
+class Item(BaseModel):
     """
-    Kit Item model representing individual components within a kit.
+    Item model representing individual inventory components.
     
-    A kit can contain multiple items such as:
-    - Firearm (rifle, pistol, etc.)
-    - Optic/Sight
-    - Case
+    Items are independent inventory objects that can exist with or without kit assignment.
+    This enables:
+    - Master inventory tracking
+    - Item reassignment between kits
+    - Lifecycle tracking across multiple kits
+    - Unassigned item management
+    
+    Items can include:
+    - Firearms (rifle, pistol, etc.)
+    - Optics/Sights
+    - Cases
     - Magazines
     - Tools
     - Other accessories
     
-    Each item can have its own attributes and serial number, enabling
-    granular tracking, swapping, and compliance management.
+    Each item has its own attributes and serial number for granular tracking.
     """
-    __tablename__ = "kit_items"
+    __tablename__ = "items"
     
-    # Reference to parent kit
-    kit_id = Column(Integer, ForeignKey("kits.id"), nullable=False, index=True)
+    # Reference to current kit (nullable - items can be unassigned)
+    current_kit_id = Column(Integer, ForeignKey("kits.id", ondelete="SET NULL"), nullable=True, index=True)
     
-    # Item type (firearm, optic, case, magazine, tool, etc.)
-    item_type = Column(String(50), nullable=False, index=True)
+    # Item type enum (firearm, optic, case, magazine, tool, etc.)
+    item_type = Column(SQLEnum(ItemType), nullable=False, index=True)
     
     # Manufacturer and model information
     make = Column(String(100), nullable=True)
@@ -55,13 +82,13 @@ class KitItem(BaseModel):
     quantity = Column(Integer, nullable=True, default=1)
     
     # Item status
-    status = Column(SQLEnum(KitItemStatus), default=KitItemStatus.in_kit, nullable=False)
+    status = Column(SQLEnum(ItemStatus), default=ItemStatus.available, nullable=False)
     
     # Additional notes
     notes = Column(Text, nullable=True)
     
-    # Relationship to parent kit
-    kit = relationship("Kit", back_populates="items")
+    # Relationship to current kit (if assigned)
+    current_kit = relationship("Kit", back_populates="items", foreign_keys=[current_kit_id])
     
     def __init__(self, **kwargs):
         # Extract serial_number from kwargs if present  
@@ -84,3 +111,7 @@ class KitItem(BaseModel):
     def serial_number(self, value):
         """Encrypt serial number when set."""
         self._serial_number_encrypted = encrypt_field(value)
+
+
+# Backward compatibility alias
+KitItem = Item

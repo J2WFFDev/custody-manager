@@ -1,12 +1,12 @@
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
-from app.models.kit_item import KitItemStatus
+from app.models.kit_item import ItemStatus, ItemType, KitItemStatus  # Import both for backward compatibility
 
 
-class KitItemBase(BaseModel):
-    """Base kit item schema"""
-    item_type: str = Field(..., description="Type of item (firearm, optic, case, magazine, tool, etc.)")
+class ItemBase(BaseModel):
+    """Base item schema"""
+    item_type: str = Field(..., description="Type of item (firearm, optic, case, magazine, tool, accessory, other)")
     make: Optional[str] = Field(None, description="Manufacturer/brand")
     model: Optional[str] = Field(None, description="Model name/number")
     friendly_name: Optional[str] = Field(None, description="User-friendly name for identification")
@@ -15,13 +15,14 @@ class KitItemBase(BaseModel):
     notes: Optional[str] = Field(None, description="Additional notes")
 
 
-class KitItemCreate(KitItemBase):
-    """Schema for creating a new kit item"""
+class ItemCreate(ItemBase):
+    """Schema for creating a new item"""
     serial_number: Optional[str] = Field(None, description="Serial number (encrypted in database)")
+    current_kit_id: Optional[int] = Field(None, description="Optional kit to assign item to on creation")
 
 
-class KitItemUpdate(BaseModel):
-    """Schema for updating an existing kit item"""
+class ItemUpdate(BaseModel):
+    """Schema for updating an existing item"""
     item_type: Optional[str] = Field(None, description="Type of item")
     make: Optional[str] = None
     model: Optional[str] = None
@@ -29,18 +30,31 @@ class KitItemUpdate(BaseModel):
     friendly_name: Optional[str] = None
     photo_url: Optional[str] = None
     quantity: Optional[int] = None
-    status: Optional[KitItemStatus] = None
+    status: Optional[ItemStatus] = None
     notes: Optional[str] = None
 
 
-class KitItemResponse(KitItemBase):
-    """Schema for kit item API responses"""
+class ItemResponse(ItemBase):
+    """Schema for item API responses"""
     id: int
-    kit_id: int
+    current_kit_id: Optional[int] = Field(None, description="ID of kit this item is assigned to (null if unassigned)")
     serial_number: Optional[str] = Field(None, description="Serial number (decrypted)")
-    status: KitItemStatus
+    status: ItemStatus
     created_at: datetime
     updated_at: datetime
     
     class Config:
         from_attributes = True
+
+
+class ItemAssignRequest(BaseModel):
+    """Schema for assigning an item to a kit"""
+    kit_id: int = Field(..., description="ID of kit to assign item to")
+    notes: Optional[str] = Field(None, description="Optional notes about the assignment")
+
+
+# Backward compatibility aliases
+KitItemBase = ItemBase
+KitItemCreate = ItemCreate
+KitItemUpdate = ItemUpdate
+KitItemResponse = ItemResponse

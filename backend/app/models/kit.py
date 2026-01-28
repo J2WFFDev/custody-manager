@@ -35,7 +35,7 @@ class Kit(BaseModel):
     _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
     
     # Relationship to kit items
-    items = relationship("KitItem", back_populates="kit", cascade="all, delete-orphan")
+    items = relationship("Item", back_populates="current_kit", cascade="all, delete-orphan", foreign_keys="Item.current_kit_id")
     
     def __init__(self, **kwargs):
         # Extract serial_number from kwargs if present  
