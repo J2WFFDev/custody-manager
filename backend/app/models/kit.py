@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, Enum as SQLEnum, Date
-from sqlalchemy import Column, String, Integer, Enum as SQLEnum
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 from app.models.base import BaseModel
 from app.core.encryption import EncryptedString
@@ -33,6 +33,9 @@ class Kit(BaseModel):
     # Encrypted serial number field (AUDIT-003)
     # Stored encrypted in database, transparent to application
     _serial_number_encrypted = Column("serial_number_encrypted", String(500), nullable=True)
+    
+    # Relationship to kit items
+    items = relationship("KitItem", back_populates="kit", cascade="all, delete-orphan")
     
     def __init__(self, **kwargs):
         # Extract serial_number from kwargs if present  

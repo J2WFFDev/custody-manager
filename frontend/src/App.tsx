@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
 import Kits from './pages/Kits';
+import KitDetails from './pages/KitDetails';
 import Audit from './pages/Audit';
 import Users from './pages/Users';
 import Approvals from './pages/Approvals';
@@ -29,6 +30,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Kits />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kits/:kitId"
+            element={
+              <ProtectedRoute>
+                <KitDetails />
               </ProtectedRoute>
             }
           />

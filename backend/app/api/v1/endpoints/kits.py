@@ -5,7 +5,9 @@ from typing import List, Literal
 
 from app.database import get_db
 from app.models.kit import Kit
+from app.models.kit_item import KitItem
 from app.schemas.kit import KitCreate, KitResponse
+from app.schemas.kit_item import KitItemCreate, KitItemUpdate, KitItemResponse
 from app.services.qr_service import create_qr_image
 from app.services.warnings_service import calculate_kit_warnings
 
@@ -193,4 +195,160 @@ def get_qr_image(
     media_type = "image/svg+xml" if image_format == "SVG" else "image/png"
     
     return Response(content=image_bytes, media_type=media_type)
+
+
+# Kit Items Endpoints
+
+@router.get("/{kit_id}/items", response_model=List[KitItemResponse])
+def list_kit_items(
+    kit_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    List all items in a kit.
+    
+    This enables viewing all components within a kit for granular inventory tracking.
+    """
+    # Verify kit exists
+    kit = db.query(Kit).filter(Kit.id == kit_id).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail="Kit not found")
+    
+    # Get items for this kit
+    items = db.query(KitItem).filter(KitItem.kit_id == kit_id).offset(skip).limit(limit).all()
+    
+    return items
+
+
+@router.post("/{kit_id}/items", response_model=KitItemResponse, status_code=201)
+def create_kit_item(
+    kit_id: int,
+    item_data: KitItemCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Add a new item to a kit.
+    
+    This allows adding individual components (firearm, optic, case, etc.) to a kit
+    for granular tracking and management.
+    """
+    # Verify kit exists
+    kit = db.query(Kit).filter(Kit.id == kit_id).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail="Kit not found")
+    
+    # Create kit item
+    kit_item = KitItem(
+        kit_id=kit_id,
+        item_type=item_data.item_type,
+        make=item_data.make,
+        model=item_data.model,
+        serial_number=item_data.serial_number,
+        friendly_name=item_data.friendly_name,
+        photo_url=item_data.photo_url,
+        quantity=item_data.quantity,
+        notes=item_data.notes
+    )
+    
+    db.add(kit_item)
+    db.commit()
+    db.refresh(kit_item)
+    
+    return kit_item
+
+
+@router.get("/{kit_id}/items/{item_id}", response_model=KitItemResponse)
+def get_kit_item(
+    kit_id: int,
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get details of a specific item in a kit.
+    """
+    # Verify kit exists
+    kit = db.query(Kit).filter(Kit.id == kit_id).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail="Kit not found")
+    
+    # Get the item
+    item = db.query(KitItem).filter(
+        KitItem.id == item_id,
+        KitItem.kit_id == kit_id
+    ).first()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Kit item not found")
+    
+    return item
+
+
+@router.put("/{kit_id}/items/{item_id}", response_model=KitItemResponse)
+def update_kit_item(
+    kit_id: int,
+    item_id: int,
+    item_data: KitItemUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    Update an existing item in a kit.
+    
+    This enables modifying item details, swapping components, or updating status.
+    """
+    # Verify kit exists
+    kit = db.query(Kit).filter(Kit.id == kit_id).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail="Kit not found")
+    
+    # Get the item
+    item = db.query(KitItem).filter(
+        KitItem.id == item_id,
+        KitItem.kit_id == kit_id
+    ).first()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Kit item not found")
+    
+    # Update fields
+    update_data = item_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(item, field, value)
+    
+    db.commit()
+    db.refresh(item)
+    
+    return item
+
+
+@router.delete("/{kit_id}/items/{item_id}", status_code=204)
+def delete_kit_item(
+    kit_id: int,
+    item_id: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Remove an item from a kit.
+    
+    This enables removing lost, broken, or replaced components from inventory.
+    """
+    # Verify kit exists
+    kit = db.query(Kit).filter(Kit.id == kit_id).first()
+    if not kit:
+        raise HTTPException(status_code=404, detail="Kit not found")
+    
+    # Get the item
+    item = db.query(KitItem).filter(
+        KitItem.id == item_id,
+        KitItem.kit_id == kit_id
+    ).first()
+    
+    if not item:
+        raise HTTPException(status_code=404, detail="Kit item not found")
+    
+    db.delete(item)
+    db.commit()
+    
+    return None
 
