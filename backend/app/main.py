@@ -4,6 +4,9 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.config import settings
 from app.api.v1 import api_router
 
+# Import models to ensure they are registered with SQLAlchemy metadata
+import app.models  # noqa: F401
+
 app = FastAPI(
     title=settings.APP_NAME,
     openapi_url=f"{settings.API_V1_PREFIX}/openapi.json",
