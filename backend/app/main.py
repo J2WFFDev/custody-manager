@@ -21,13 +21,14 @@ app.add_middleware(
     https_only=settings.ENVIRONMENT == "production",  # Secure cookies in production
 )
 
-# CORS middleware
+# CORS middleware - Allow frontend requests including preflight
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=settings.get_cors_origins(),
+    allow_credentials=True,  # Required for Authorization header and cookies
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Explicitly include OPTIONS
+    allow_headers=["*"],  # Allow all headers including Authorization
+    max_age=600,  # Cache preflight responses for 10 minutes
 )
 
 # Include API router

@@ -28,13 +28,11 @@ class Settings(BaseSettings):
     # Field Encryption - for sensitive database fields (AUDIT-003)
     ENCRYPTION_KEY: str = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode()  # Auto-generate if not provided
     
-    # CORS - Allow production frontend
-    BACKEND_CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://custody-manager.vercel.app",
-        "https://*.vercel.app",  # Allow Vercel preview deployments
-    ]
+    # Frontend URL
+    FRONTEND_URL: str = "http://localhost:5173"
+    
+    # CORS - Will be built dynamically from FRONTEND_URL
+    BACKEND_CORS_ORIGINS: List[str] = []
     
     # OAuth - Google
     GOOGLE_CLIENT_ID: str = ""
@@ -47,12 +45,33 @@ class Settings(BaseSettings):
     MICROSOFT_TENANT_ID: str = "common"
     MICROSOFT_REDIRECT_URI: str = "http://localhost:5173/auth/microsoft/callback"
     
-    # Frontend URL
-    FRONTEND_URL: str = "http://localhost:5173"
-    
     class Config:
         env_file = ".env"
         case_sensitive = True
+    
+    def get_cors_origins(self) -> List[str]:
+        """Build comprehensive CORS origins list including frontend URL and development URLs."""
+        # Start with base development origins
+        allowed_origins = [
+            "http://localhost:5173",  # Vite dev server
+            "http://localhost:3000",  # Alternative dev port
+        ]
+        
+        # Add production frontend URL if set and not already in list
+        if self.FRONTEND_URL and self.FRONTEND_URL not in allowed_origins:
+            allowed_origins.append(self.FRONTEND_URL)
+        
+        # Add any CORS origins from environment variable
+        if self.BACKEND_CORS_ORIGINS:
+            for origin in self.BACKEND_CORS_ORIGINS:
+                if origin and origin not in allowed_origins:
+                    allowed_origins.append(origin)
+        
+        # Filter out empty strings and None values
+        allowed_origins = [origin for origin in allowed_origins if origin]
+        
+        logger.info(f"CORS allowed origins: {allowed_origins}")
+        return allowed_origins
     
     def get_microsoft_metadata_url(self) -> str:
         """Get Microsoft OAuth metadata URL with validated tenant ID."""
