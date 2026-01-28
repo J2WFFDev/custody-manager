@@ -298,3 +298,217 @@ def test_oauth_error_parameter(client):
     response = client.get(f"/api/v1/auth/google/callback?error=access_denied&state={state_token}")
     assert response.status_code == 400
     assert "OAuth error: access_denied" in response.json()["detail"]
+
+
+def test_google_callback_success_with_id_field(client):
+    """Test Google OAuth callback with 'id' field (OAuth2 userinfo format)"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_google_token"}
+    
+    # Mock the user info response with 'id' field (not 'sub')
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'id': '117280431026806745004',
+        'email': 'jrwest73@gmail.com',
+        'verified_email': True,
+        'name': 'Jim West',
+        'given_name': 'Jim',
+        'family_name': 'West',
+        'picture': 'https://lh3.googleusercontent.com/a/test'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/google/callback?code=test_code&state={state_token}",
+                follow_redirects=False
+            )
+            
+            assert response.status_code == 307  # Redirect
+            assert "location" in response.headers
+            location = response.headers["location"]
+            assert "access_token=" in location
+            assert "refresh_token=" in location
+
+
+def test_google_callback_success_with_sub_field(client):
+    """Test Google OAuth callback with 'sub' field (OIDC format)"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_google_token"}
+    
+    # Mock the user info response with 'sub' field (OIDC format)
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'sub': '117280431026806745004',
+        'email': 'jrwest73@gmail.com',
+        'email_verified': True,
+        'name': 'Jim West',
+        'given_name': 'Jim',
+        'family_name': 'West',
+        'picture': 'https://lh3.googleusercontent.com/a/test'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/google/callback?code=test_code&state={state_token}",
+                follow_redirects=False
+            )
+            
+            assert response.status_code == 307  # Redirect
+            assert "location" in response.headers
+            location = response.headers["location"]
+            assert "access_token=" in location
+            assert "refresh_token=" in location
+
+
+def test_google_callback_missing_user_id(client):
+    """Test Google OAuth callback fails when neither 'sub' nor 'id' is present"""
+    state_data = {
+        "provider": "google",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_google_token"}
+    
+    # Mock the user info response without 'sub' or 'id'
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'email': 'jrwest73@gmail.com',
+        'name': 'Jim West'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/google/callback?code=test_code&state={state_token}"
+            )
+            
+            assert response.status_code == 400
+            assert "Failed to get user ID from Google" in response.json()["detail"]
+
+
+def test_microsoft_callback_success_with_id_field(client):
+    """Test Microsoft OAuth callback with 'id' field (Graph API format)"""
+    state_data = {
+        "provider": "microsoft",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_ms_token"}
+    
+    # Mock the user info response with 'id' field
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'id': 'ms-user-id-123',
+        'mail': 'user@example.com',
+        'displayName': 'Test User'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/microsoft/callback?code=test_code&state={state_token}",
+                follow_redirects=False
+            )
+            
+            assert response.status_code == 307  # Redirect
+            assert "location" in response.headers
+            location = response.headers["location"]
+            assert "access_token=" in location
+            assert "refresh_token=" in location
+
+
+def test_microsoft_callback_success_with_sub_field(client):
+    """Test Microsoft OAuth callback with 'sub' field (OIDC format)"""
+    state_data = {
+        "provider": "microsoft",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_ms_token"}
+    
+    # Mock the user info response with 'sub' field (OIDC format)
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'sub': 'ms-user-sub-123',
+        'mail': 'user@example.com',
+        'displayName': 'Test User'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/microsoft/callback?code=test_code&state={state_token}",
+                follow_redirects=False
+            )
+            
+            assert response.status_code == 307  # Redirect
+            assert "location" in response.headers
+            location = response.headers["location"]
+            assert "access_token=" in location
+            assert "refresh_token=" in location
+
+
+def test_microsoft_callback_missing_user_id(client):
+    """Test Microsoft OAuth callback fails when neither 'sub' nor 'id' is present"""
+    state_data = {
+        "provider": "microsoft",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    state_token = state_serializer.dumps(state_data)
+    
+    # Mock the token exchange
+    mock_token_response = MagicMock()
+    mock_token_response.status_code = 200
+    mock_token_response.json.return_value = {"access_token": "mock_ms_token"}
+    
+    # Mock the user info response without 'sub' or 'id'
+    mock_userinfo_response = MagicMock()
+    mock_userinfo_response.status_code = 200
+    mock_userinfo_response.json.return_value = {
+        'mail': 'user@example.com',
+        'displayName': 'Test User'
+    }
+    
+    with patch('requests.post', return_value=mock_token_response):
+        with patch('requests.get', return_value=mock_userinfo_response):
+            response = client.get(
+                f"/api/v1/auth/microsoft/callback?code=test_code&state={state_token}"
+            )
+            
+            assert response.status_code == 400
+            assert "Failed to get user ID from Microsoft" in response.json()["detail"]
