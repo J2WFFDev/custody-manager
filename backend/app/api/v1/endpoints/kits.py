@@ -5,7 +5,7 @@ from typing import List, Literal
 
 from app.database import get_db
 from app.models.kit import Kit
-from app.models.kit_item import KitItem
+from app.models.kit_item import Item, ItemStatus  # Use Item instead of KitItem
 from app.schemas.kit import KitCreate, KitResponse
 from app.schemas.kit_item import KitItemCreate, KitItemUpdate, KitItemResponse
 from app.services.qr_service import create_qr_image
@@ -207,7 +207,7 @@ def list_kit_items(
     db: Session = Depends(get_db)
 ):
     """
-    List all items in a kit.
+    List all items currently assigned to a kit.
     
     This enables viewing all components within a kit for granular inventory tracking.
     """
@@ -216,8 +216,8 @@ def list_kit_items(
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
     
-    # Get items for this kit
-    items = db.query(KitItem).filter(KitItem.kit_id == kit_id).offset(skip).limit(limit).all()
+    # Get items assigned to this kit
+    items = db.query(Item).filter(Item.current_kit_id == kit_id).offset(skip).limit(limit).all()
     
     return items
 
@@ -233,15 +233,17 @@ def create_kit_item(
     
     This allows adding individual components (firearm, optic, case, etc.) to a kit
     for granular tracking and management.
+    
+    The item is created and immediately assigned to the kit with 'assigned' status.
     """
     # Verify kit exists
     kit = db.query(Kit).filter(Kit.id == kit_id).first()
     if not kit:
         raise HTTPException(status_code=404, detail="Kit not found")
     
-    # Create kit item
-    kit_item = KitItem(
-        kit_id=kit_id,
+    # Create item and assign it to the kit
+    kit_item = Item(
+        current_kit_id=kit_id,  # Use current_kit_id instead of kit_id
         item_type=item_data.item_type,
         make=item_data.make,
         model=item_data.model,
@@ -249,7 +251,8 @@ def create_kit_item(
         friendly_name=item_data.friendly_name,
         photo_url=item_data.photo_url,
         quantity=item_data.quantity,
-        notes=item_data.notes
+        notes=item_data.notes,
+        status=ItemStatus.assigned  # Items created via kit are automatically assigned
     )
     
     db.add(kit_item)
@@ -274,9 +277,9 @@ def get_kit_item(
         raise HTTPException(status_code=404, detail="Kit not found")
     
     # Get the item
-    item = db.query(KitItem).filter(
-        KitItem.id == item_id,
-        KitItem.kit_id == kit_id
+    item = db.query(Item).filter(
+        Item.id == item_id,
+        Item.current_kit_id == kit_id
     ).first()
     
     if not item:
@@ -303,9 +306,9 @@ def update_kit_item(
         raise HTTPException(status_code=404, detail="Kit not found")
     
     # Get the item
-    item = db.query(KitItem).filter(
-        KitItem.id == item_id,
-        KitItem.kit_id == kit_id
+    item = db.query(Item).filter(
+        Item.id == item_id,
+        Item.current_kit_id == kit_id
     ).first()
     
     if not item:
@@ -332,6 +335,7 @@ def delete_kit_item(
     Remove an item from a kit.
     
     This enables removing lost, broken, or replaced components from inventory.
+    The item is completely deleted from the database.
     """
     # Verify kit exists
     kit = db.query(Kit).filter(Kit.id == kit_id).first()
@@ -339,9 +343,9 @@ def delete_kit_item(
         raise HTTPException(status_code=404, detail="Kit not found")
     
     # Get the item
-    item = db.query(KitItem).filter(
-        KitItem.id == item_id,
-        KitItem.kit_id == kit_id
+    item = db.query(Item).filter(
+        Item.id == item_id,
+        Item.current_kit_id == kit_id
     ).first()
     
     if not item:

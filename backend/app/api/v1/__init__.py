@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, kits, users, custody, events, maintenance
+from app.api.v1.endpoints import auth, kits, items, users, custody, events, maintenance
 
 api_router = APIRouter()
 
@@ -9,6 +9,9 @@ api_router.include_router(auth.router, prefix="/auth", tags=["authentication"])
 
 # Include kits routes
 api_router.include_router(kits.router, prefix="/kits", tags=["kits"])
+
+# Include items routes (master inventory)
+api_router.include_router(items.router, prefix="/items", tags=["items"])
 
 # Include users routes
 api_router.include_router(users.router, prefix="/users", tags=["users"])

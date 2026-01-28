@@ -59,6 +59,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     Kits
                   </Link>
                   <span className="text-gray-300">|</span>
+                  <Link to="/inventory" className="hover:underline">
+                    Inventory
+                  </Link>
+                  <span className="text-gray-300">|</span>
                   <Link to="/approvals" className="hover:underline">
                     Approvals
                   </Link>
