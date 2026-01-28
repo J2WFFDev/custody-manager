@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import AuthCallback from './pages/AuthCallback';
 import Kits from './pages/Kits';
 import KitDetails from './pages/KitDetails';
+import Inventory from './pages/Inventory';
 import Audit from './pages/Audit';
 import Users from './pages/Users';
 import Approvals from './pages/Approvals';
@@ -38,6 +39,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <KitDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory"
+            element={
+              <ProtectedRoute>
+                <Inventory />
               </ProtectedRoute>
             }
           />
