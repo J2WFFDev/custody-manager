@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { itemService } from '../services/itemService';
-import type { Item, ItemStatus, ItemType } from '../types/kitItem';
+import type { Item } from '../types/kitItem';
 
 const Inventory: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);

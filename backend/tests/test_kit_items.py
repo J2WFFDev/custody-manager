@@ -74,8 +74,8 @@ def test_create_kit_item(client, sample_kit):
     assert data["serial_number"] == "SN-12345"
     assert data["friendly_name"] == "Rifle #1"
     assert data["quantity"] == 1
-    assert data["status"] == "in_kit"
-    assert data["kit_id"] == kit_id
+    assert data["status"] == "assigned"  # Updated for item-first architecture (was "in_kit")
+    assert data["current_kit_id"] == kit_id  # Updated field name (was "kit_id")
     assert "id" in data
     assert "created_at" in data
 
