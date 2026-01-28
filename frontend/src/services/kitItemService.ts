@@ -22,14 +22,14 @@ export const kitItemService = {
    * Add a new item to a kit
    */
   async createKitItem(kitId: number, itemData: KitItemCreate): Promise<KitItem> {
-    return api.post(`/kits/${kitId}/items`, itemData);
+    return api.post<KitItem>(`/kits/${kitId}/items`, itemData);
   },
 
   /**
    * Update an existing kit item
    */
   async updateKitItem(kitId: number, itemId: number, itemData: KitItemUpdate): Promise<KitItem> {
-    return api.put(`/kits/${kitId}/items/${itemId}`, itemData);
+    return api.put<KitItem>(`/kits/${kitId}/items/${itemId}`, itemData);
   },
 
   /**
